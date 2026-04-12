@@ -1,0 +1,4 @@
+enum OverrideType {
+  cancelled,
+  modified,
+}
