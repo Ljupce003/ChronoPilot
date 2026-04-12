@@ -10,40 +10,32 @@
 The system provides the following functionality:
 
 * **Event Management**
-
     * Create, edit, delete events
     * Support for:
-
         * One-time events
         * Recurring events (e.g., weekly lectures)
         * Temporary events (valid only for a specific day)
 
 * **Schedule Visualization**
-
     * Weekly and daily views
     * Clear display of time slots and overlapping events
 
 * **Smart Notifications**
-
     * Time-based reminders (e.g., 30 minutes before)
     * Location-aware notifications (triggered only if the user is far from the event location)
 
 * **Media Attachments**
-
     * Add photos to events using camera or gallery (e.g., lecture notes)
 
 * **Location Integration**
-
     * Assign locations to events
     * Calculate proximity to upcoming events
 
 * **Authentication**
-
     * User registration and login
     * Personalized schedules per user
 
 * **External Data Integration**
-
     * Use of APIs (e.g., holidays, optional calendar imports)
 
 ---
@@ -95,7 +87,6 @@ The application follows a **layered architecture**, separating responsibilities 
 ### 4. Service Layer
 
 Handles platform-specific features:
-
 * **Location Service** – retrieves user location and calculates distance
 * **Notification Service** – schedules and triggers reminders
 * **Camera Service** – captures and attaches images to events
@@ -110,7 +101,6 @@ The application operates as follows:
 2. User creates or imports events (lectures, tasks, etc.)
 3. Events are stored locally and optionally synced to the cloud
 4. The system continuously:
-
     * Updates UI based on state changes
     * Checks upcoming events
     * Triggers notifications (time + location-based)
@@ -124,3 +114,7 @@ The application operates as follows:
 * **Context-aware behavior** (location-based reminders)
 * **Offline-first design** with optional cloud sync
 * **User-centered design** focused on simplicity and speed
+
+
+---
+
