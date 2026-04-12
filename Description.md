@@ -1,120 +1,193 @@
 
 # Project Summary – ChronoPilot
 
-**ChronoPilot** is a smart mobile planner designed for students to manage lectures, tasks, and daily activities in a flexible and dynamic way. The application allows users to create, modify, and organize events, including **one-time, recurring, and temporary events**, making it suitable for constantly changing schedules such as university timetables.
+**ChronoPilot** is a smart student-focused scheduling application designed to manage lectures, tasks, and daily activities in a flexible and adaptive way. It supports **one-time events, recurring schedules, and temporary modifications**, making it suitable for dynamic university timetables.
 
 ---
 
 ## Core Features
 
-The system provides the following functionality:
+### Event Management
 
-* **Event Management**
-    * Create, edit, delete events
-    * Support for:
-        * One-time events
-        * Recurring events (e.g., weekly lectures)
-        * Temporary events (valid only for a specific day)
+* Create, edit, and delete events
+* Supports:
 
-* **Schedule Visualization**
-    * Weekly and daily views
-    * Clear display of time slots and overlapping events
+    * One-time events
+    * Recurring events (e.g., weekly lectures)
+    * Temporary events (date-specific overrides or changes)
+    * TODO tasks with deadlines or time slots
 
-* **Smart Notifications**
-    * Time-based reminders (e.g., 30 minutes before)
-    * Location-aware notifications (triggered only if the user is far from the event location)
+---
 
-* **Media Attachments**
-    * Add photos to events using camera or gallery (e.g., lecture notes)
+### Schedule Visualization
 
-* **Location Integration**
-    * Assign locations to events
-    * Calculate proximity to upcoming events
+* Weekly view (primary interface)
+* Daily detailed view (hour/minute level)
+* Monthly overview (event indicators/dots)
+* Conflict detection for overlapping events
+* Visual differentiation between:
+    * Lectures
+    * Tasks
+    * Recurring instances
+    * Overrides
 
-* **Authentication**
-    * User registration and login
-    * Personalized schedules per user
+---
 
-* **External Data Integration**
-    * Use of APIs (e.g., holidays, optional calendar imports)
+### Smart Notifications
+
+* Time-based reminders (e.g., 30 minutes before)
+* Location-aware notifications:
+
+    * Trigger only if user is not near event location
+* Future extension: adaptive notification rules
+
+---
+
+### Location Integration
+
+* Assign geographic location to events
+* Distance calculation using user’s current position
+* Enables context-aware reminders
+
+---
+
+### Media Attachments
+
+* Attach images to events (camera or gallery)
+* Used for lecture notes, documents, or references
+
+---
+
+### Authentication
+
+* User registration and login
+* Each user has isolated personal schedule
+* Future support for cloud sync
+
+---
+
+### External Data Integration
+
+* Optional API integration for:
+
+    * Holidays
+    * Academic calendar imports
+    * External schedules
 
 ---
 
 ## System Structure
 
-The application follows a **layered architecture**, separating responsibilities for better maintainability:
+The application follows a **layered architecture** with clear separation of responsibilities.
+
+---
 
 ### 1. Presentation Layer (UI)
 
-* Screens:
-    * Weekly planner (main view)
-    * Daily view
-    * Add/Edit event
-    * Event details
-    * Profile / Settings
-* Custom UI components (calendar grid, event cards)
+* Weekly planner (main screen)
+* Daily detailed schedule view
+* Monthly overview
+* Add/Edit event screens
+* Event details view
+* Settings / Profile
+
+Includes:
+
+* Custom calendar UI
+* Event cards
+* Timeline components
 
 ---
 
 ### 2. State Management Layer
 
-* Manages:
-    * Current selected date/week
-    * Event lists
-    * UI updates on changes
-* Ensures reactive updates across the app
+Responsible for:
+
+* Selected date/week state
+* Event list state
+* UI synchronization
+* Real-time updates after changes
+
+Ensures reactive UI behavior across the app.
 
 ---
 
 ### 3. Data Layer
 
-#### Local Storage
+#### Local Storage (core source)
 
-* Stores events and user data locally (offline support)
-* Handles:
-    * Event models
-    * Recurring logic
-    * Temporary events
+* Stores all event models
+* Handles offline-first functionality
+* Manages:
+    * Events
+    * Recurring definitions
+    * Overrides / exceptions
+    * TODOs
 
-#### Remote Services
+#### Remote Storage (optional sync)
 
-* Cloud synchronization (e.g., Firebase or REST API)
-* User authentication
-* Optional external API integration
+* User authentication data
+* Cloud backup (Firebase / REST API)
+* External calendar data
 
 ---
 
 ### 4. Service Layer
 
-Handles platform-specific features:
-* **Location Service** – retrieves user location and calculates distance
-* **Notification Service** – schedules and triggers reminders
-* **Camera Service** – captures and attaches images to events
+Handles platform and system integrations:
+
+* **Location Service**
+    * Fetch user location
+    * Calculate distance to event
+
+* **Notification Service**
+    * Schedule time-based reminders
+    * Trigger location-aware alerts
+
+* **Camera Service**
+    * Capture images
+    * Attach media to events
 
 ---
 
 ## System Behavior
 
-The application operates as follows:
-
-1. User logs into the system
+1. User authenticates into the app
 2. User creates or imports events (lectures, tasks, etc.)
-3. Events are stored locally and optionally synced to the cloud
-4. The system continuously:
-    * Updates UI based on state changes
-    * Checks upcoming events
+3. Data is stored locally (and optionally synced remotely)
+4. On each calendar view load:
+    * Recurring events are expanded into occurrences
+    * Overrides and exceptions are applied
+    * Normal events and TODOs are merged
+5. System continuously:
+    * Updates UI state
+    * Detects conflicts
     * Triggers notifications (time + location-based)
-5. Users can modify schedules dynamically (move, delete, or add temporary events)
+6. Users can dynamically modify schedule (move, edit, override, delete)
 
 ---
 
 ## Key Characteristics
 
-* **Flexible scheduling** (handles real-life changes in student timetables)
-* **Context-aware behavior** (location-based reminders)
-* **Offline-first design** with optional cloud sync
-* **User-centered design** focused on simplicity and speed
+* Flexible schedule handling for real-world academic changes
+* Unified event system (events, lectures, tasks, recurring)
+* Context-aware notifications (time + location)
+* Offline-first architecture with optional cloud sync
+* Strong separation between data, logic, and UI layers
+* Conflict-aware scheduling system
 
+---
+
+## Next Steps (Implementation Roadmap)
+
+1. Define final **data models (Event, RecurringEvent, Override, DisplayEvent)**
+2. Implement **service layer (Calendar generation logic first)**
+3. Build **state management (event stream + calendar state)**
+4. Create **basic UI (week + day view first)**
+5. Add **authentication**
+6. Integrate **location + notifications**
+7. Add **camera/media support**
+8. Polish UX + conflict handling
 
 ---
 
