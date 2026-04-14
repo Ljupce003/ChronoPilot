@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:chrono_pilot/domain/models/recurring_rule.dart';
+
 import '../enums/event_subtype.dart';
 import '../enums/event_type.dart';
 import 'event_location.dart';
@@ -8,40 +12,42 @@ class EventModel {
   final String userId;
 
   final String title;
+  final String? description;
 
-  // final DateTime date;
-
-  final DateTime startDateTime;
-  final DateTime endDateTime;
+  final DateTime? startDateTime;
+  final DateTime? endDateTime;
 
   final EventLocation? location;
   final String? imagePath;
 
-  final String? recurringEventId;
   final EventType type;
 
-  // TODO fields
+  // TO-DO / Task fields
   final bool isCompleted;
   final DateTime? deadline;
 
-  // Lecture/Auditory/Lab model
+  // Lecture fields
   final LectureDetails? lectureDetails;
   final EventSubtype? subtype;
+
+  // Recurring rule embedded
+  final RecurringRule? recurringRule;
 
   EventModel({
     required this.id,
     required this.userId,
     required this.title,
-    required this.startDateTime,
-    required this.endDateTime,
+    this.description,
+    this.startDateTime,
+    this.endDateTime,
     this.location,
     this.imagePath,
-    this.recurringEventId,
     this.type = EventType.single,
     this.isCompleted = false,
     this.deadline,
     this.lectureDetails,
     this.subtype,
+    this.recurringRule,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -49,24 +55,30 @@ class EventModel {
       id: json['id'],
       userId: json['userId'],
       title: json['title'],
-      startDateTime: DateTime.parse(json['startDateTime']),
-      endDateTime: DateTime.parse(json['endDateTime']),
+      description: json['description'],
+      startDateTime: json['startDateTime'] != null
+          ? DateTime.parse(json['startDateTime'])
+          : null,
+      endDateTime: json['endDateTime'] != null
+          ? DateTime.parse(json['endDateTime'])
+          : null,
       location: json['location'] != null
           ? EventLocation.fromJson(json['location'])
           : null,
       imagePath: json['imagePath'],
-      recurringEventId: json['recurringEventId'],
       type: EventType.values.byName(json['type']),
       isCompleted: json['isCompleted'] ?? false,
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'])
           : null,
-
       lectureDetails: json['lectureDetails'] != null
           ? LectureDetails.fromJson(json['lectureDetails'])
           : null,
       subtype: json['subtype'] != null
           ? EventSubtype.values.byName(json['subtype'])
+          : null,
+      recurringRule: json['recurringRule'] != null
+          ? RecurringRule.fromJson(json['recurringRule'])
           : null,
     );
   }
@@ -76,17 +88,36 @@ class EventModel {
       'id': id,
       'userId': userId,
       'title': title,
-      'startDateTime': startDateTime.toIso8601String(),
-      'endDateTime': endDateTime.toIso8601String(),
+      'description': description,
+      'startDateTime': startDateTime?.toIso8601String(),
+      'endDateTime': endDateTime?.toIso8601String(),
       'location': location?.toJson(),
       'imagePath': imagePath,
-      'recurringEventId': recurringEventId,
       'type': type.name,
       'isCompleted': isCompleted,
       'deadline': deadline?.toIso8601String(),
-
       'lectureDetails': lectureDetails?.toJson(),
       'subtype': subtype?.name,
+      'recurringRule': recurringRule?.toJson(),
+    };
+  }
+
+  Map<String, dynamic> toJsonEncoded() {
+    return {
+      'id': id,
+      'userId': userId,
+      'title': title,
+      'description': description,
+      'startDateTime': startDateTime?.toIso8601String(),
+      'endDateTime': endDateTime?.toIso8601String(),
+      'location': location != null ? jsonEncode(location!.toJson()) : null,
+      'imagePath': imagePath,
+      'type': type.name,
+      'isCompleted': isCompleted ? 1 : 0,
+      'deadline': deadline?.toIso8601String(),
+      'lectureDetails': lectureDetails != null ? jsonEncode(lectureDetails!.toJson()) : null,
+      'subtype': subtype?.name,
+      'recurringRule': recurringRule != null ? jsonEncode(recurringRule!.toJson()) : null,
     };
   }
 }

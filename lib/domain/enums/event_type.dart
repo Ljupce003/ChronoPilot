@@ -1,5 +1,6 @@
 enum EventType {
   single,
-  override,
-  todo
+  todo,
+  lecture,
+  recurring,
 }
