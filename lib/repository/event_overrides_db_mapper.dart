@@ -14,6 +14,7 @@ EventOverride eventOverrideFromDb(Map<String, dynamic> row) {
     newEndDateTime: row['newEndDateTime'] != null
         ? DateTime.parse(row['newEndDateTime'])
         : null,
+    replacementEventId: row['replacementEventId'],
     note: row['note'],
   );
 }
@@ -27,6 +28,7 @@ Map<String, dynamic> eventOverrideToDb(EventOverride eventOverride) {
     'originalDateTime': eventOverride.originalDateTime.toIso8601String(),
     'newStartDateTime': eventOverride.newStartDateTime?.toIso8601String(),
     'newEndDateTime': eventOverride.newEndDateTime?.toIso8601String(),
+    'replacementEventId': eventOverride.replacementEventId,
     'note': eventOverride.note,
   };
 }

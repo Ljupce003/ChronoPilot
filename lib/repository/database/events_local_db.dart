@@ -19,7 +19,7 @@ class EventsLocalDB {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -33,6 +33,11 @@ class EventsLocalDB {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await _createEventOverridesTable(db);
+    }
+    if (oldVersion >= 2 && oldVersion < 3) {
+      await db.execute(
+        'ALTER TABLE event_overrides ADD COLUMN replacementEventId TEXT',
+      );
     }
   }
 
@@ -73,6 +78,7 @@ class EventsLocalDB {
       originalDateTime TEXT NOT NULL,
       newStartDateTime TEXT,
       newEndDateTime TEXT,
+      replacementEventId TEXT,
       note TEXT,
       UNIQUE(recurringEventId, originalDateTime)
     )

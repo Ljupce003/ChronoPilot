@@ -9,7 +9,7 @@ class EventsRepository {
 
   Future<void> addEvent(EventModel event) async{
     final db = await localDB.database;
-    print("DB INSERT → ${event.id}");
+
     await db.insert(
         "events",
         event.toJsonEncoded(),
@@ -18,7 +18,7 @@ class EventsRepository {
 
   Future<int> updateEvent(EventModel event) async {
     final db = await localDB.database;
-    print("DB UPDATE → ${event.id}");
+
     return db.update(
       "events",
       event.toJsonEncoded(),
@@ -29,7 +29,7 @@ class EventsRepository {
 
   Future<int> deleteEvent(String eventId) async{
     final db = await localDB.database;
-    print("DB DELETE → $eventId");
+
     return db.delete("events",where: 'id = ?',whereArgs: [eventId]);
   }
 

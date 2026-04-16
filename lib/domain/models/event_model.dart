@@ -5,7 +5,7 @@ import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import '../enums/event_subtype.dart';
 import '../enums/event_type.dart';
 import 'event_location.dart';
-import 'lecture_details.dart';
+import 'education_details.dart';
 
 class EventModel {
   final String id;
@@ -26,8 +26,8 @@ class EventModel {
   final bool isCompleted;
   final DateTime? deadline;
 
-  // Lecture fields
-  final LectureDetails? lectureDetails;
+  // Education fields
+  final EducationDetails? educationDetails;
   final EventSubtype? subtype;
 
   // Recurring rule embedded
@@ -45,7 +45,7 @@ class EventModel {
     this.type = EventType.single,
     this.isCompleted = false,
     this.deadline,
-    this.lectureDetails,
+    this.educationDetails,
     this.subtype,
     this.recurringRule,
   });
@@ -71,8 +71,8 @@ class EventModel {
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'])
           : null,
-      lectureDetails: json['lectureDetails'] != null
-          ? LectureDetails.fromJson(json['lectureDetails'])
+      educationDetails: json['lectureDetails'] != null
+          ? EducationDetails.fromJson(json['lectureDetails'])
           : null,
       subtype: json['subtype'] != null
           ? EventSubtype.values.byName(json['subtype'])
@@ -96,7 +96,7 @@ class EventModel {
       'type': type.name,
       'isCompleted': isCompleted,
       'deadline': deadline?.toIso8601String(),
-      'lectureDetails': lectureDetails?.toJson(),
+      'lectureDetails': educationDetails?.toJson(),
       'subtype': subtype?.name,
       'recurringRule': recurringRule?.toJson(),
     };
@@ -115,7 +115,7 @@ class EventModel {
       'type': type.name,
       'isCompleted': isCompleted ? 1 : 0,
       'deadline': deadline?.toIso8601String(),
-      'lectureDetails': lectureDetails != null ? jsonEncode(lectureDetails!.toJson()) : null,
+      'lectureDetails': educationDetails != null ? jsonEncode(educationDetails!.toJson()) : null,
       'subtype': subtype?.name,
       'recurringRule': recurringRule != null ? jsonEncode(recurringRule!.toJson()) : null,
     };

@@ -1,16 +1,15 @@
 import 'package:chrono_pilot/presentation/widgets/home_button.dart';
 import 'package:flutter/material.dart';
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
+class MenuPage extends StatelessWidget {
+  const MenuPage({super.key});
 
-  final String title;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text("ChronoPilot"),
         centerTitle: true,
 
         // -----------------------

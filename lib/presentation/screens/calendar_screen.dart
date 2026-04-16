@@ -32,7 +32,19 @@ class _CalendarViewState extends State<CalendarScreen>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _buildViewModeSelector(),
+        leading: IconButton(
+          onPressed: () => Navigator.pushReplacementNamed(context, '/menu'),
+          tooltip: 'Menu',
+          icon: const Icon(Icons.menu),
+        ),
+        title: SizedBox(
+          height: 36,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: _buildViewModeSelector(),
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: setCurrentDay,
@@ -52,11 +64,19 @@ class _CalendarViewState extends State<CalendarScreen>{
 
   Widget _buildViewModeSelector() {
     return SegmentedButton<CalendarViewMode>(
+      showSelectedIcon: false,
+      style: ButtonStyle(
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+        ),
+      ),
       segments: const [
-        ButtonSegment(value: CalendarViewMode.day,   label: Text('Day'),   icon: Icon(Icons.view_day)),
-        ButtonSegment(value: CalendarViewMode.week,  label: Text('Week'),  icon: Icon(Icons.view_week)),
-        ButtonSegment(value: CalendarViewMode.month, label: Text('Month'), icon: Icon(Icons.calendar_view_month)),
-        ButtonSegment(value: CalendarViewMode.year,  label: Text('Year'),  icon: Icon(Icons.calendar_today)),
+        ButtonSegment(value: CalendarViewMode.day, label: Text('Day')),
+        ButtonSegment(value: CalendarViewMode.week, label: Text('Week')),
+        ButtonSegment(value: CalendarViewMode.month, label: Text('Month')),
+        ButtonSegment(value: CalendarViewMode.year, label: Text('Year')),
       ],
       selected: {calendarViewMode},
       onSelectionChanged: (Set<CalendarViewMode> selected) {

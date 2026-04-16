@@ -4,7 +4,7 @@ import 'package:chrono_pilot/domain/enums/event_subtype.dart';
 import 'package:chrono_pilot/domain/enums/event_type.dart';
 import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/event_model.dart';
-import 'package:chrono_pilot/domain/models/lecture_details.dart';
+import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 
 EventModel fromDb(Map<String, dynamic> row) {
@@ -28,8 +28,8 @@ EventModel fromDb(Map<String, dynamic> row) {
     deadline: row['deadline'] != null
         ? DateTime.parse(row['deadline'])
         : null,
-    lectureDetails: row['lectureDetails'] != null
-        ? LectureDetails.fromJson(jsonDecode(row['lectureDetails']))
+    educationDetails: row['lectureDetails'] != null
+        ? EducationDetails.fromJson(jsonDecode(row['lectureDetails']))
         : null,
     subtype: row['subtype'] != null
         ? EventSubtype.values.byName(row['subtype'])

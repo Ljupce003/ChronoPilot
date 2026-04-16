@@ -74,7 +74,7 @@ class EventService {
           title: r.title,
           startDateTime: r.start,
           endDateTime: r.end,
-          lectureDetails: r.lectureDetails,
+          educationDetails: r.educationDetails,
           subtype: r.subtype,
           location: r.location,
           type: EventType.lecture,
@@ -116,7 +116,7 @@ class EventService {
       isCompleted: old.isCompleted,
       deadline: r.deadline ?? old.deadline,
 
-      lectureDetails: r.lectureDetails ?? old.lectureDetails,
+      educationDetails: r.educationDetails ?? old.educationDetails,
       subtype: r.subtype ?? old.subtype,
 
       recurringRule: r.recurringRule ?? old.recurringRule,

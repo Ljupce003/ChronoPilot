@@ -1,18 +1,18 @@
-class LectureDetails {
+class EducationDetails {
   final String courseName;
   final String professor;
   final String room;
   final String studyProgramCode;
 
-  LectureDetails({
+  EducationDetails({
     required this.courseName,
     required this.professor,
     required this.room,
     required this.studyProgramCode,
   });
 
-  factory LectureDetails.fromJson(Map<String, dynamic> json) {
-    return LectureDetails(
+  factory EducationDetails.fromJson(Map<String, dynamic> json) {
+    return EducationDetails(
       courseName: json['courseName'],
       professor: json['professor'],
       room: json['room'],

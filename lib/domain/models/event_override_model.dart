@@ -13,6 +13,7 @@ class EventOverride {
   // only used if modified
   final DateTime? newStartDateTime;
   final DateTime? newEndDateTime;
+  final String? replacementEventId;
 
   final String? note;
 
@@ -24,6 +25,7 @@ class EventOverride {
     required this.originalDateTime,
     this.newStartDateTime,
     this.newEndDateTime,
+    this.replacementEventId,
     this.note
   });
 
@@ -40,6 +42,7 @@ class EventOverride {
       newEndDateTime: json['newEndDateTime'] != null
           ? DateTime.parse(json['newEndDateTime'])
           : null,
+      replacementEventId: json['replacementEventId'],
       note: json['note'],
     );
   }
@@ -53,6 +56,7 @@ class EventOverride {
       'originalDateTime': originalDateTime.toIso8601String(),
       'newStartDateTime': newStartDateTime?.toIso8601String(),
       'newEndDateTime': newEndDateTime?.toIso8601String(),
+      'replacementEventId': replacementEventId,
       'note': note,
     };
   }

@@ -34,9 +34,13 @@ class EventOverrideService {
     required DateTime originalDateTime,
     DateTime? newStartDateTime,
     DateTime? newEndDateTime,
+    String? replacementEventId,
     String? note,
   }) async {
-    if (newStartDateTime == null && newEndDateTime == null && note == null) {
+    if (newStartDateTime == null &&
+        newEndDateTime == null &&
+        replacementEventId == null &&
+        note == null) {
       throw ArgumentError(
         'Modified override must include at least one changed field.',
       );
@@ -50,6 +54,7 @@ class EventOverrideService {
       originalDateTime: originalDateTime,
       newStartDateTime: newStartDateTime,
       newEndDateTime: newEndDateTime,
+      replacementEventId: replacementEventId,
       note: note,
     );
 
@@ -59,6 +64,28 @@ class EventOverrideService {
 
   Future<void> deleteOverride(String overrideId) async {
     await repository.deleteOverride(overrideId);
+  }
+
+  Future<EventOverride> getOverrideById(String overrideId) async {
+    return repository.getOverrideById(overrideId);
+  }
+
+  Future<void> markOverrideAsCancelled(
+    String overrideId, {
+    String? note,
+  }) async {
+    final existing = await repository.getOverrideById(overrideId);
+
+    final cancelled = EventOverride(
+      id: existing.id,
+      userId: existing.userId,
+      recurringEventId: existing.recurringEventId,
+      type: OverrideType.cancelled,
+      originalDateTime: existing.originalDateTime,
+      note: note ?? existing.note,
+    );
+
+    await repository.updateOverride(cancelled);
   }
 
   Future<List<EventOverride>> getOverridesForRecurringEventsInRange({
