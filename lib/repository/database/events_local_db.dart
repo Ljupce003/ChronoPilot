@@ -17,10 +17,26 @@ class EventsLocalDB {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future _createDB(Database db, int version) async {
+    await _createEventsTable(db);
+    await _createEventOverridesTable(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createEventOverridesTable(db);
+    }
+  }
+
+  Future<void> _createEventsTable(Database db) async {
     await db.execute('''
     CREATE TABLE events (
       id TEXT PRIMARY KEY,
@@ -45,5 +61,25 @@ class EventsLocalDB {
       recurringRule TEXT
     )
   ''');
+  }
+
+  Future<void> _createEventOverridesTable(Database db) async {
+    await db.execute('''
+    CREATE TABLE event_overrides (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      recurringEventId TEXT NOT NULL,
+      type TEXT NOT NULL,
+      originalDateTime TEXT NOT NULL,
+      newStartDateTime TEXT,
+      newEndDateTime TEXT,
+      note TEXT,
+      UNIQUE(recurringEventId, originalDateTime)
+    )
+  ''');
+
+    await db.execute(
+      'CREATE INDEX idx_event_overrides_recurring_original ON event_overrides(recurringEventId, originalDateTime)',
+    );
   }
 }

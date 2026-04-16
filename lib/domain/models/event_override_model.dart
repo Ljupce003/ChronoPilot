@@ -8,6 +8,8 @@ class EventOverride {
 
   final OverrideType type;
 
+  final DateTime originalDateTime;
+
   // only used if modified
   final DateTime? newStartDateTime;
   final DateTime? newEndDateTime;
@@ -19,9 +21,10 @@ class EventOverride {
     required this.userId,
     required this.recurringEventId,
     required this.type,
+    required this.originalDateTime,
     this.newStartDateTime,
     this.newEndDateTime,
-    this.note,
+    this.note
   });
 
   factory EventOverride.fromJson(Map<String, dynamic> json) {
@@ -30,6 +33,7 @@ class EventOverride {
       userId: json['userId'],
       recurringEventId: json['recurringEventId'],
       type: OverrideType.values.byName(json['type']),
+      originalDateTime: DateTime.parse(json['originalDateTime']),
       newStartDateTime: json['newStartDateTime'] != null
           ? DateTime.parse(json['newStartDateTime'])
           : null,
@@ -46,6 +50,7 @@ class EventOverride {
       'userId': userId,
       'recurringEventId': recurringEventId,
       'type': type.name,
+      'originalDateTime': originalDateTime.toIso8601String(),
       'newStartDateTime': newStartDateTime?.toIso8601String(),
       'newEndDateTime': newEndDateTime?.toIso8601String(),
       'note': note,
