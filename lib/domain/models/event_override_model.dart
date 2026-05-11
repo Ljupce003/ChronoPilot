@@ -1,4 +1,5 @@
-import '../enums/override_type.dart';
+import 'package:chrono_pilot/domain/enums/override_type.dart';
+import 'package:chrono_pilot/utils/enum_utils.dart';
 
 class EventOverride {
   final String id;
@@ -6,7 +7,7 @@ class EventOverride {
 
   final String recurringEventId;
 
-  final OverrideType type;
+  final OverrideType overrideType;
 
   final DateTime originalDateTime;
 
@@ -21,12 +22,12 @@ class EventOverride {
     required this.id,
     required this.userId,
     required this.recurringEventId,
-    required this.type,
+    required this.overrideType,
     required this.originalDateTime,
     this.newStartDateTime,
     this.newEndDateTime,
     this.replacementEventId,
-    this.note
+    this.note,
   });
 
   factory EventOverride.fromJson(Map<String, dynamic> json) {
@@ -34,7 +35,8 @@ class EventOverride {
       id: json['id'],
       userId: json['userId'],
       recurringEventId: json['recurringEventId'],
-      type: OverrideType.values.byName(json['type']),
+      overrideType: enumFromString(OverrideType.values, json['overrideType']) ??
+          OverrideType.values.first,
       originalDateTime: DateTime.parse(json['originalDateTime']),
       newStartDateTime: json['newStartDateTime'] != null
           ? DateTime.parse(json['newStartDateTime'])
@@ -52,7 +54,7 @@ class EventOverride {
       'id': id,
       'userId': userId,
       'recurringEventId': recurringEventId,
-      'type': type.name,
+      'overrideType': overrideType.name,
       'originalDateTime': originalDateTime.toIso8601String(),
       'newStartDateTime': newStartDateTime?.toIso8601String(),
       'newEndDateTime': newEndDateTime?.toIso8601String(),

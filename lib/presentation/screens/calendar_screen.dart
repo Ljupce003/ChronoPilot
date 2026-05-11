@@ -21,7 +21,6 @@ class _CalendarViewState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    //
     calendarViewMode = CalendarViewMode.day;
     selectedDay = DateTime.now();
 
@@ -55,35 +54,12 @@ class _CalendarViewState extends State<CalendarScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Padding(
-            padding: EdgeInsetsGeometry.only(top: 35),
+          _buildNavigationBar(),
+          Expanded(
             child: _buildBody(),
           ),
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              onPressed: _cycleNext,
-              tooltip: 'Next',
-              icon: const Icon(Icons.navigate_next),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topLeft,
-            child: IconButton(
-              onPressed: _cyclePrevious,
-              tooltip: 'Previous',
-              icon: const Icon(Icons.navigate_before),
-            ),
-          ),
-          if (calendarViewMode == CalendarViewMode.day)
-            Align(
-              alignment: Alignment.topCenter,
-              child: Text(
-                '${selectedDay.day} / ${selectedDay.month} / ${selectedDay.year}',
-              ),
-            ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -92,6 +68,64 @@ class _CalendarViewState extends State<CalendarScreen> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Widget _buildNavigationBar() {
+    return Container(
+      color: Colors.grey.shade100,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: _cyclePrevious,
+            tooltip: 'Previous',
+            icon: const Icon(Icons.navigate_before),
+            iconSize: 24,
+          ),
+          if (calendarViewMode == CalendarViewMode.day)
+            TextButton(
+              onPressed: _showDatePicker,
+              child: Text(
+                '${selectedDay.day} / ${selectedDay.month} / ${selectedDay.year}',
+                style: const TextStyle(color: Colors.black87, fontSize: 16),
+              ),
+            )
+          else
+            Expanded(
+              child: Center(
+                child: Text(
+                  _getDateRangeLabel(),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          IconButton(
+            onPressed: _cycleNext,
+            tooltip: 'Next',
+            icon: const Icon(Icons.navigate_next),
+            iconSize: 24,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getDateRangeLabel() {
+    return switch (calendarViewMode) {
+      CalendarViewMode.day => '${selectedDay.day} / ${selectedDay.month} / ${selectedDay.year}',
+      CalendarViewMode.week => 'Week of ${selectedDay.day} / ${selectedDay.month}',
+      CalendarViewMode.month => '${_getMonthName(selectedDay.month)} ${selectedDay.year}',
+      CalendarViewMode.year => '${selectedDay.year}',
+    };
+  }
+
+  String _getMonthName(int month) {
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return monthNames[month - 1];
   }
 
   Widget _buildViewModeSelector() {
@@ -113,15 +147,16 @@ class _CalendarViewState extends State<CalendarScreen> {
       selected: {calendarViewMode},
       onSelectionChanged: (Set<CalendarViewMode> selected) {
         final mode = selected.first;
+        final today = DateTime.now();
         switch (mode) {
           case CalendarViewMode.day:
-            selectDay(selectedDay);
+            selectDay(today);
           case CalendarViewMode.week:
-            selectWeek(selectedDay);
+            selectWeek(today);
           case CalendarViewMode.month:
-            selectMonth(selectedDay);
+            selectMonth(today);
           case CalendarViewMode.year:
-            selectYear(selectedDay);
+            selectYear(today);
         }
       },
     );
@@ -132,7 +167,10 @@ class _CalendarViewState extends State<CalendarScreen> {
       case CalendarViewMode.day:
         return DayView(selected: selectedDay);
       case CalendarViewMode.week:
-        return WeekView(selected: selectedDay);
+        return WeekView(
+          selected: selectedDay,
+          onDaySelected: selectDay,
+        );
       case CalendarViewMode.month:
         return MonthView(selected: selectedDay);
       case CalendarViewMode.year:
@@ -200,7 +238,7 @@ class _CalendarViewState extends State<CalendarScreen> {
   void nextDay() {
     setState(() {
       calendarViewMode = CalendarViewMode.day;
-      selectedDay = selectedDay.add(Duration(days: 1));
+      selectedDay = selectedDay.add(const Duration(days: 1));
     });
     _reloadVisibleRange();
   }
@@ -208,7 +246,7 @@ class _CalendarViewState extends State<CalendarScreen> {
   void previousDay() {
     setState(() {
       calendarViewMode = CalendarViewMode.day;
-      selectedDay = selectedDay.subtract(Duration(days: 1));
+      selectedDay = selectedDay.subtract(const Duration(days: 1));
     });
     _reloadVisibleRange();
   }
@@ -216,7 +254,7 @@ class _CalendarViewState extends State<CalendarScreen> {
   void nextWeek() {
     setState(() {
       calendarViewMode = CalendarViewMode.week;
-      selectedDay = selectedDay.add(Duration(days: 7));
+      selectedDay = selectedDay.add(const Duration(days: 7));
     });
     _reloadVisibleRange();
   }
@@ -224,7 +262,7 @@ class _CalendarViewState extends State<CalendarScreen> {
   void previousWeek() {
     setState(() {
       calendarViewMode = CalendarViewMode.week;
-      selectedDay = selectedDay.subtract(Duration(days: 7));
+      selectedDay = selectedDay.subtract(const Duration(days: 7));
     });
     _reloadVisibleRange();
   }
@@ -322,4 +360,18 @@ class _CalendarViewState extends State<CalendarScreen> {
         return previousYear();
     }
   }
+
+  void _showDatePicker() {
+    showDatePicker(
+      context: context,
+      initialDate: selectedDay,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    ).then((pickedDate) {
+      if (pickedDate != null) {
+        selectDay(pickedDate);
+      }
+    });
+  }
 }
+

@@ -19,7 +19,7 @@ class EventsLocalDB {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -31,13 +31,11 @@ class EventsLocalDB {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
+    if (oldVersion < 5) {
+      await db.execute('DROP TABLE IF EXISTS event_overrides');
+      await db.execute('DROP TABLE IF EXISTS events');
       await _createEventOverridesTable(db);
-    }
-    if (oldVersion >= 2 && oldVersion < 3) {
-      await db.execute(
-        'ALTER TABLE event_overrides ADD COLUMN replacementEventId TEXT',
-      );
+      await _createEventsTable(db);
     }
   }
 
@@ -55,13 +53,14 @@ class EventsLocalDB {
       location TEXT,
       imagePath TEXT,
 
-      type TEXT,
+      scheduleType TEXT,
+      contentType TEXT,
 
       isCompleted INTEGER,
       deadline TEXT,
 
       educationDetails TEXT,
-      subtype TEXT,
+      educationSubtype TEXT,
 
       recurringRule TEXT
     )
@@ -74,7 +73,7 @@ class EventsLocalDB {
       id TEXT PRIMARY KEY,
       userId TEXT NOT NULL,
       recurringEventId TEXT NOT NULL,
-      type TEXT NOT NULL,
+      overrideType TEXT NOT NULL,
       originalDateTime TEXT NOT NULL,
       newStartDateTime TEXT,
       newEndDateTime TEXT,

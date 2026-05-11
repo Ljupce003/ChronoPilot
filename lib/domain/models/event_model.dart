@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:chrono_pilot/domain/enums/education_subtype.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
+import 'package:chrono_pilot/utils/enum_utils.dart';
+import 'package:chrono_pilot/utils/event_classification.dart';
 
-import '../enums/event_subtype.dart';
-import '../enums/event_type.dart';
 import 'event_location.dart';
 import 'education_details.dart';
 
@@ -20,7 +23,8 @@ class EventModel {
   final EventLocation? location;
   final String? imagePath;
 
-  final EventType type;
+  final EventScheduleType scheduleType;
+  final EventContentType contentType;
 
   // TO-DO / Task fields
   final bool isCompleted;
@@ -28,7 +32,7 @@ class EventModel {
 
   // Education fields
   final EducationDetails? educationDetails;
-  final EventSubtype? subtype;
+  final EducationSubtype? educationSubtype;
 
   // Recurring rule embedded
   final RecurringRule? recurringRule;
@@ -42,13 +46,22 @@ class EventModel {
     this.endDateTime,
     this.location,
     this.imagePath,
-    this.type = EventType.single,
+    this.scheduleType = EventScheduleType.oneTime,
+    this.contentType = EventContentType.ordinary,
     this.isCompleted = false,
     this.deadline,
     this.educationDetails,
-    this.subtype,
+    this.educationSubtype,
     this.recurringRule,
   });
+
+  bool get isRecurring => scheduleType == EventScheduleType.recurring;
+
+  String get scheduleAndContentText =>
+      scheduleAndContentLabel(
+        scheduleType: scheduleType,
+        contentType: contentType,
+      );
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
@@ -66,7 +79,16 @@ class EventModel {
           ? EventLocation.fromJson(json['location'])
           : null,
       imagePath: json['imagePath'],
-      type: EventType.values.byName(json['type']),
+      scheduleType: enumFromString<EventScheduleType>(
+            EventScheduleType.values,
+            json['scheduleType'],
+          ) ??
+          EventScheduleType.oneTime,
+      contentType: enumFromString<EventContentType>(
+            EventContentType.values,
+            json['contentType'],
+          ) ??
+          EventContentType.ordinary,
       isCompleted: json['isCompleted'] ?? false,
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'])
@@ -74,9 +96,10 @@ class EventModel {
       educationDetails: json['educationDetails'] != null
           ? EducationDetails.fromJson(json['educationDetails'])
           : null,
-      subtype: json['subtype'] != null
-          ? EventSubtype.values.byName(json['subtype'])
-          : null,
+      educationSubtype: enumFromString<EducationSubtype>(
+        EducationSubtype.values,
+        json['educationSubtype'],
+      ),
       recurringRule: json['recurringRule'] != null
           ? RecurringRule.fromJson(json['recurringRule'])
           : null,
@@ -93,11 +116,12 @@ class EventModel {
       'endDateTime': endDateTime?.toIso8601String(),
       'location': location?.toJson(),
       'imagePath': imagePath,
-      'type': type.name,
+      'scheduleType': scheduleType.name,
+      'contentType': contentType.name,
       'isCompleted': isCompleted,
       'deadline': deadline?.toIso8601String(),
       'educationDetails': educationDetails?.toJson(),
-      'subtype': subtype?.name,
+      'educationSubtype': educationSubtype?.name,
       'recurringRule': recurringRule?.toJson(),
     };
   }
@@ -112,12 +136,17 @@ class EventModel {
       'endDateTime': endDateTime?.toIso8601String(),
       'location': location != null ? jsonEncode(location!.toJson()) : null,
       'imagePath': imagePath,
-      'type': type.name,
+      'scheduleType': scheduleType.name,
+      'contentType': contentType.name,
       'isCompleted': isCompleted ? 1 : 0,
       'deadline': deadline?.toIso8601String(),
-      'educationDetails': educationDetails != null ? jsonEncode(educationDetails!.toJson()) : null,
-      'subtype': subtype?.name,
-      'recurringRule': recurringRule != null ? jsonEncode(recurringRule!.toJson()) : null,
+      'educationDetails': educationDetails != null
+          ? jsonEncode(educationDetails!.toJson())
+          : null,
+      'educationSubtype': educationSubtype?.name,
+      'recurringRule': recurringRule != null
+          ? jsonEncode(recurringRule!.toJson())
+          : null,
     };
   }
 }

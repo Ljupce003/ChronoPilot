@@ -19,7 +19,7 @@ class EventOverrideService {
       id: _uuid.v4(),
       userId: userId,
       recurringEventId: recurringEventId,
-      type: OverrideType.cancelled,
+      overrideType: OverrideType.cancelled,
       originalDateTime: originalDateTime,
       note: note,
     );
@@ -50,7 +50,7 @@ class EventOverrideService {
       id: _uuid.v4(),
       userId: userId,
       recurringEventId: recurringEventId,
-      type: OverrideType.modified,
+      overrideType: OverrideType.modified,
       originalDateTime: originalDateTime,
       newStartDateTime: newStartDateTime,
       newEndDateTime: newEndDateTime,
@@ -80,7 +80,7 @@ class EventOverrideService {
       id: existing.id,
       userId: existing.userId,
       recurringEventId: existing.recurringEventId,
-      type: OverrideType.cancelled,
+      overrideType: OverrideType.cancelled,
       originalDateTime: existing.originalDateTime,
       note: note ?? existing.note,
     );

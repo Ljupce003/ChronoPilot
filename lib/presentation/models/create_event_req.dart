@@ -1,5 +1,6 @@
-import 'package:chrono_pilot/domain/enums/event_subtype.dart';
-import 'package:chrono_pilot/domain/enums/event_type.dart';
+import 'package:chrono_pilot/domain/enums/education_subtype.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
@@ -12,25 +13,27 @@ class CreateEventRequest {
   final DateTime? start;
   final DateTime? end;
 
-  final EventType type;
+  final EventScheduleType scheduleType;
+  final EventContentType contentType;
 
   // optional inputs
   final DateTime? deadline;
   final EducationDetails? educationDetails;
-  final EventSubtype? subtype;
+  final EducationSubtype? educationSubtype;
   final RecurringRule? recurringRule;
   final EventLocation? location;
 
   CreateEventRequest({
     required this.userId,
     required this.title,
-    required this.type,
+    this.scheduleType = EventScheduleType.oneTime,
+    this.contentType = EventContentType.ordinary,
     this.description,
     this.start,
     this.end,
     this.deadline,
     this.educationDetails,
-    this.subtype,
+    this.educationSubtype,
     this.recurringRule,
     this.location,
   });

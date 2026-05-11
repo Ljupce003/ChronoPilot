@@ -1,4 +1,5 @@
-import 'package:chrono_pilot/domain/enums/event_type.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/enums/override_type.dart';
 import 'package:chrono_pilot/domain/models/event_model.dart';
 import 'package:chrono_pilot/domain/models/event_override_model.dart';
@@ -26,7 +27,9 @@ class EventTimelineService {
 
     final allEvents = await eventsRepository.getAllEvents();
     final recurringEvents = allEvents
-        .where((e) => e.type == EventType.recurring && e.recurringRule != null)
+        .where((event) =>
+            event.scheduleType == EventScheduleType.recurring &&
+            event.recurringRule != null)
         .toList();
 
     final recurringIds = recurringEvents.map((e) => e.id).toList();
@@ -43,7 +46,9 @@ class EventTimelineService {
         .toSet();
 
     final baseViewModels = allEvents
-        .where((e) => e.type != EventType.recurring && !replacementIds.contains(e.id))
+        .where((event) =>
+            event.scheduleType != EventScheduleType.recurring &&
+            !replacementIds.contains(event.id))
         .map(_mapBaseEvent)
         .whereType<EventViewModel>()
         .where((vm) => _intersects(vm.startDateTime, vm.endDateTime, from, to))
@@ -98,11 +103,11 @@ class EventTimelineService {
         continue;
       }
 
-      if (override.type == OverrideType.cancelled) {
+      if (override.overrideType == OverrideType.cancelled) {
         continue;
       }
 
-      if (override.type == OverrideType.modified) {
+      if (override.overrideType == OverrideType.modified) {
         if (override.replacementEventId != null) {
           final replacement = eventsById[override.replacementEventId!];
           if (replacement != null) {
@@ -149,9 +154,9 @@ class EventTimelineService {
   }
 
   EventViewModel? _mapBaseEvent(EventModel event) {
-    switch (event.type) {
-      case EventType.single:
-      case EventType.education:
+    switch (event.contentType) {
+      case EventContentType.ordinary:
+      case EventContentType.education:
         if (event.startDateTime == null || event.endDateTime == null) {
           return null;
         }
@@ -162,15 +167,18 @@ class EventTimelineService {
           description: event.description,
           startDateTime: event.startDateTime!,
           endDateTime: event.endDateTime!,
-          type: event.type,
+          scheduleType: event.scheduleType,
+          contentType: event.contentType,
           location: event.location,
           imagePath: event.imagePath,
-          isCompleted: event.type == EventType.todo ? event.isCompleted : null,
+          isCompleted: event.contentType == EventContentType.todo
+              ? event.isCompleted
+              : null,
           deadline: event.deadline,
           educationDetails: event.educationDetails,
-          subtype: event.subtype,
+          educationSubtype: event.educationSubtype,
         );
-      case EventType.todo:
+      case EventContentType.todo:
         if (event.deadline == null) {
           return null;
         }
@@ -183,16 +191,15 @@ class EventTimelineService {
           description: event.description,
           startDateTime: start,
           endDateTime: end,
-          type: event.type,
+          scheduleType: event.scheduleType,
+          contentType: event.contentType,
           location: event.location,
           imagePath: event.imagePath,
           isCompleted: event.isCompleted,
           deadline: event.deadline,
           educationDetails: event.educationDetails,
-          subtype: event.subtype,
+          educationSubtype: event.educationSubtype,
         );
-      case EventType.recurring:
-        return null;
     }
   }
 
@@ -209,13 +216,14 @@ class EventTimelineService {
       description: recurring.description,
       startDateTime: occurrenceStart,
       endDateTime: occurrenceEnd,
-      type: EventType.recurring,
+      scheduleType: recurring.scheduleType,
+      contentType: recurring.contentType,
       location: recurring.location,
       imagePath: recurring.imagePath,
       isCompleted: recurring.isCompleted,
       deadline: recurring.deadline,
       educationDetails: recurring.educationDetails,
-      subtype: recurring.subtype,
+      educationSubtype: recurring.educationSubtype,
       overrideId: overrideId,
       recurringEventId: recurring.id,
     );
@@ -238,13 +246,14 @@ class EventTimelineService {
       description: base.description,
       startDateTime: base.startDateTime,
       endDateTime: base.endDateTime,
-      type: base.type,
+      scheduleType: base.scheduleType,
+      contentType: base.contentType,
       location: base.location,
       imagePath: base.imagePath,
       isCompleted: base.isCompleted,
       deadline: base.deadline,
       educationDetails: base.educationDetails,
-      subtype: base.subtype,
+      educationSubtype: base.educationSubtype,
       overrideId: overrideId,
       recurringEventId: recurringEventId,
     );

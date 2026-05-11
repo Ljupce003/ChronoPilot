@@ -30,7 +30,7 @@ class EventListScreen extends StatelessWidget {
 
           return ListTile(
             title: Text(e.title),
-            subtitle: Text(e.type.name),
+            subtitle: Text(e.scheduleAndContentText),
 
             onTap: () {
               Navigator.pushNamed(

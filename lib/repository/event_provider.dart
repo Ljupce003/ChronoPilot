@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:chrono_pilot/domain/enums/event_type.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
@@ -63,7 +64,8 @@ class EventProvider extends ChangeNotifier {
       CreateEventRequest(
         userId: 'seed-user',
         title: 'Seed Single Event',
-        type: EventType.single,
+        scheduleType: EventScheduleType.oneTime,
+        contentType: EventContentType.ordinary,
         start: now.subtract(const Duration(hours: 1)),
         end: now.add(const Duration(hours: 1)),
       ),
@@ -73,7 +75,8 @@ class EventProvider extends ChangeNotifier {
       CreateEventRequest(
         userId: 'seed-user',
         title: 'Seed Education Event',
-        type: EventType.education,
+        scheduleType: EventScheduleType.oneTime,
+        contentType: EventContentType.education,
         start: now.add(const Duration(hours: 2)),
         end: now.add(const Duration(hours: 3)),
         educationDetails: EducationDetails(
@@ -89,8 +92,45 @@ class EventProvider extends ChangeNotifier {
       CreateEventRequest(
         userId: 'seed-user',
         title: 'Seed Todo Event',
-        type: EventType.todo,
+        scheduleType: EventScheduleType.oneTime,
+        contentType: EventContentType.todo,
         deadline: now.add(const Duration(hours: 4)),
+      ),
+    );
+
+    // Test overlapping events
+    await eventService.createEvent(
+      CreateEventRequest(
+        userId: 'seed-user',
+        title: 'Overlapping Event 1',
+        scheduleType: EventScheduleType.oneTime,
+        contentType: EventContentType.ordinary,
+        start: now.add(const Duration(minutes: 30)),
+        end: now.add(const Duration(hours: 1, minutes: 30)),
+      ),
+    );
+
+    // Test same-time event (starts at same time as Seed Single Event)
+    await eventService.createEvent(
+      CreateEventRequest(
+        userId: 'seed-user',
+        title: 'Same-Time Event',
+        scheduleType: EventScheduleType.oneTime,
+        contentType: EventContentType.ordinary,
+        start: now.subtract(const Duration(hours: 1)),
+        end: now.add(const Duration(minutes: 30)),
+      ),
+    );
+
+    // Test partial overlap
+    await eventService.createEvent(
+      CreateEventRequest(
+        userId: 'seed-user',
+        title: 'Partial Overlap Event',
+        scheduleType: EventScheduleType.oneTime,
+        contentType: EventContentType.todo,
+        start: now.add(const Duration(minutes: 15)),
+        end: now.add(const Duration(hours: 2)),
       ),
     );
   }
@@ -153,7 +193,7 @@ class EventProvider extends ChangeNotifier {
     required CreateEventRequest replacementEventRequest,
     String? note,
   }) async {
-    if (replacementEventRequest.type == EventType.recurring) {
+    if (replacementEventRequest.scheduleType == EventScheduleType.recurring) {
       throw ArgumentError('Replacement event cannot be recurring.');
     }
 

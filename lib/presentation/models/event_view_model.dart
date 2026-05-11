@@ -1,11 +1,11 @@
-
-import 'package:chrono_pilot/domain/enums/event_subtype.dart';
-import 'package:chrono_pilot/domain/enums/event_type.dart';
+import 'package:chrono_pilot/domain/enums/education_subtype.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
+import 'package:chrono_pilot/utils/event_classification.dart';
 
 class EventViewModel {
-
   final String id;
   final String userId;
 
@@ -15,7 +15,8 @@ class EventViewModel {
   final DateTime startDateTime;
   final DateTime endDateTime;
 
-  final EventType type;
+  final EventScheduleType scheduleType;
+  final EventContentType contentType;
 
   final EventLocation? location;
   final String? imagePath;
@@ -24,9 +25,9 @@ class EventViewModel {
   final bool? isCompleted;
   final DateTime? deadline;
 
-  // Lecture fields
+  // Education fields
   final EducationDetails? educationDetails;
-  final EventSubtype? subtype;
+  final EducationSubtype? educationSubtype;
 
   // If event was created from override
   final String? overrideId;
@@ -39,19 +40,22 @@ class EventViewModel {
     required this.title,
     required this.startDateTime,
     required this.endDateTime,
-    required this.type,
-
+    required this.scheduleType,
+    required this.contentType,
     this.description,
-
     this.location,
     this.imagePath,
-
     this.isCompleted,
     this.deadline,
     this.educationDetails,
-    this.subtype,
-
+    this.educationSubtype,
     this.overrideId,
-    this.recurringEventId
+    this.recurringEventId,
   });
+
+  String get scheduleAndContentText =>
+      scheduleAndContentLabel(
+        scheduleType: scheduleType,
+        contentType: contentType,
+      );
 }

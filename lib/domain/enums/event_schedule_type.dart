@@ -1,0 +1,5 @@
+enum EventScheduleType {
+  oneTime,
+  recurring,
+}
+

@@ -1,9 +1,7 @@
-import 'package:chrono_pilot/domain/enums/event_type.dart';
 import 'package:chrono_pilot/domain/models/event_model.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
-
-import 'package:uuid/uuid.dart';
 import 'package:chrono_pilot/repository/events_repository.dart';
+import 'package:uuid/uuid.dart';
 
 class EventService {
   final EventsRepository repository;
@@ -32,94 +30,42 @@ class EventService {
     await repository.deleteEvent(id);
   }
 
-  EventModel _mapToEventModel(String id, CreateEventRequest r) {
-    switch (r.type) {
-
-    // --------------------
-    // NORMAL EVENT
-    // --------------------
-      case EventType.single:
-        return EventModel(
-          id: id,
-          userId: r.userId,
-          title: r.title,
-          description: r.description,
-          startDateTime: r.start,
-          endDateTime: r.end,
-          location: r.location,
-          type: EventType.single,
-        );
-
-    // --------------------
-    // TODO / TASK
-    // --------------------
-      case EventType.todo:
-        return EventModel(
-          id: id,
-          userId: r.userId,
-          title: r.title,
-          description: r.description,
-          isCompleted: false,
-          deadline: r.deadline,
-          type: EventType.todo,
-        );
-
-    // --------------------
-    // EDUCATION
-    // --------------------
-      case EventType.education:
-        return EventModel(
-          id: id,
-          userId: r.userId,
-          title: r.title,
-          startDateTime: r.start,
-          endDateTime: r.end,
-          educationDetails: r.educationDetails,
-          subtype: r.subtype,
-          location: r.location,
-          type: EventType.education,
-        );
-
-    // --------------------
-    // RECURRING
-    // --------------------
-      case EventType.recurring:
-        return EventModel(
-          id: id,
-          userId: r.userId,
-          title: r.title,
-          startDateTime: r.start,
-          endDateTime: r.end,
-          recurringRule: r.recurringRule,
-          location: r.location,
-          type: EventType.recurring,
-        );
-    }
+  EventModel _mapToEventModel(String id, CreateEventRequest request) {
+    return EventModel(
+      id: id,
+      userId: request.userId,
+      title: request.title,
+      description: request.description,
+      startDateTime: request.start,
+      endDateTime: request.end,
+      location: request.location,
+      scheduleType: request.scheduleType,
+      contentType: request.contentType,
+      isCompleted: false,
+      deadline: request.deadline,
+      educationDetails: request.educationDetails,
+      educationSubtype: request.educationSubtype,
+      recurringRule: request.recurringRule,
+    );
   }
 
-  EventModel _merge(EventModel old, CreateEventRequest r) {
+  EventModel _merge(EventModel oldEvent, CreateEventRequest request) {
     return EventModel(
-      id: old.id,
-      userId: old.userId,
-
-      title: r.title,
-      description: r.description ?? old.description,
-
-      startDateTime: r.start ?? old.startDateTime,
-      endDateTime: r.end ?? old.endDateTime,
-
-      location: r.location ?? old.location,
-      imagePath: old.imagePath,
-
-      type: r.type,
-
-      isCompleted: old.isCompleted,
-      deadline: r.deadline ?? old.deadline,
-
-      educationDetails: r.educationDetails ?? old.educationDetails,
-      subtype: r.subtype ?? old.subtype,
-
-      recurringRule: r.recurringRule ?? old.recurringRule,
+      id: oldEvent.id,
+      userId: oldEvent.userId,
+      title: request.title,
+      description: request.description ?? oldEvent.description,
+      startDateTime: request.start ?? oldEvent.startDateTime,
+      endDateTime: request.end ?? oldEvent.endDateTime,
+      location: request.location ?? oldEvent.location,
+      imagePath: oldEvent.imagePath,
+      scheduleType: request.scheduleType,
+      contentType: request.contentType,
+      isCompleted: oldEvent.isCompleted,
+      deadline: request.deadline ?? oldEvent.deadline,
+      educationDetails: request.educationDetails ?? oldEvent.educationDetails,
+      educationSubtype: request.educationSubtype ?? oldEvent.educationSubtype,
+      recurringRule: request.recurringRule ?? oldEvent.recurringRule,
     );
   }
 }
