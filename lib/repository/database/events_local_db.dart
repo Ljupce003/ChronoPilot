@@ -60,7 +60,7 @@ class EventsLocalDB {
       isCompleted INTEGER,
       deadline TEXT,
 
-      lectureDetails TEXT,
+      educationDetails TEXT,
       subtype TEXT,
 
       recurringRule TEXT

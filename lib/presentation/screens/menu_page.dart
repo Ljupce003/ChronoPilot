@@ -12,13 +12,10 @@ class MenuPage extends StatelessWidget {
         title: Text("ChronoPilot"),
         centerTitle: true,
 
-        // -----------------------
-        // PROFILE (future)
-        // -----------------------
         actions: [
           IconButton(
             onPressed: () {
-              // later: navigate to profile
+              // TODO later: navigate to profile
               Navigator.pushNamed(context, "/profile");
             },
             icon: const Icon(Icons.person),
@@ -26,9 +23,6 @@ class MenuPage extends StatelessWidget {
         ],
       ),
 
-      // -----------------------
-      // MAIN NAVIGATION
-      // -----------------------
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -1,23 +1,22 @@
-
 import 'package:chrono_pilot/presentation/models/calendar_view_mode.dart';
 import 'package:chrono_pilot/presentation/widgets/day_view.dart';
 import 'package:chrono_pilot/presentation/widgets/week_view.dart';
 import 'package:chrono_pilot/presentation/widgets/month_view.dart';
 import 'package:chrono_pilot/presentation/widgets/year_view.dart';
+import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class CalendarScreen extends StatefulWidget{
+class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
   State<StatefulWidget> createState() => _CalendarViewState();
 }
 
-class _CalendarViewState extends State<CalendarScreen>{
-
+class _CalendarViewState extends State<CalendarScreen> {
   late CalendarViewMode calendarViewMode;
   late DateTime selectedDay;
-
 
   @override
   void initState() {
@@ -26,6 +25,9 @@ class _CalendarViewState extends State<CalendarScreen>{
     calendarViewMode = CalendarViewMode.day;
     selectedDay = DateTime.now();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reloadVisibleRange();
+    });
   }
 
   @override
@@ -53,7 +55,37 @@ class _CalendarViewState extends State<CalendarScreen>{
           ),
         ],
       ),
-      body: _buildBody(),
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsetsGeometry.only(top: 35),
+            child: _buildBody(),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              onPressed: _cycleNext,
+              tooltip: 'Next',
+              icon: const Icon(Icons.navigate_next),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(
+              onPressed: _cyclePrevious,
+              tooltip: 'Previous',
+              icon: const Icon(Icons.navigate_before),
+            ),
+          ),
+          if (calendarViewMode == CalendarViewMode.day)
+            Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                '${selectedDay.day} / ${selectedDay.month} / ${selectedDay.year}',
+              ),
+            ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _onAddEvent(context),
         tooltip: 'Add Event',
@@ -82,10 +114,14 @@ class _CalendarViewState extends State<CalendarScreen>{
       onSelectionChanged: (Set<CalendarViewMode> selected) {
         final mode = selected.first;
         switch (mode) {
-          case CalendarViewMode.day:   selectDay(selectedDay);
-          case CalendarViewMode.week:  selectWeek(selectedDay);
-          case CalendarViewMode.month: selectMonth(selectedDay);
-          case CalendarViewMode.year:  selectYear(selectedDay);
+          case CalendarViewMode.day:
+            selectDay(selectedDay);
+          case CalendarViewMode.week:
+            selectWeek(selectedDay);
+          case CalendarViewMode.month:
+            selectMonth(selectedDay);
+          case CalendarViewMode.year:
+            selectYear(selectedDay);
         }
       },
     );
@@ -108,29 +144,35 @@ class _CalendarViewState extends State<CalendarScreen>{
     Navigator.pushNamed(context, "/create-event");
   }
 
-  void setCurrentDay(){
-    var newSelectedDay = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day);
+  void setCurrentDay() {
+    var newSelectedDay = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
     setState(() {
       calendarViewMode = CalendarViewMode.day;
       selectedDay = newSelectedDay;
     });
+    _reloadVisibleRange();
   }
 
-
-  void selectDay(DateTime selected){
-    var newSelectedDay = DateTime(selected.year,selected.month,selected.day);
+  void selectDay(DateTime selected) {
+    var newSelectedDay = DateTime(selected.year, selected.month, selected.day);
     setState(() {
       calendarViewMode = CalendarViewMode.day;
       selectedDay = newSelectedDay;
     });
+    _reloadVisibleRange();
   }
 
-  void selectMonth(DateTime selected){
-    var newSelectedDay = DateTime(selected.year,selected.month);
+  void selectMonth(DateTime selected) {
+    var newSelectedDay = DateTime(selected.year, selected.month);
     setState(() {
       calendarViewMode = CalendarViewMode.month;
       selectedDay = newSelectedDay;
     });
+    _reloadVisibleRange();
   }
 
   void selectWeek(DateTime selected) {
@@ -142,6 +184,7 @@ class _CalendarViewState extends State<CalendarScreen>{
       calendarViewMode = CalendarViewMode.week;
       selectedDay = newSelectedDay;
     });
+    _reloadVisibleRange();
   }
 
   void selectYear(DateTime selected) {
@@ -151,72 +194,132 @@ class _CalendarViewState extends State<CalendarScreen>{
       calendarViewMode = CalendarViewMode.year;
       selectedDay = newSelectedDay;
     });
+    _reloadVisibleRange();
   }
 
-  void nextDay(){
+  void nextDay() {
     setState(() {
       calendarViewMode = CalendarViewMode.day;
       selectedDay = selectedDay.add(Duration(days: 1));
     });
+    _reloadVisibleRange();
   }
 
-  void previousDay(){
+  void previousDay() {
     setState(() {
       calendarViewMode = CalendarViewMode.day;
       selectedDay = selectedDay.subtract(Duration(days: 1));
     });
+    _reloadVisibleRange();
   }
 
-  void nextWeek(){
+  void nextWeek() {
     setState(() {
       calendarViewMode = CalendarViewMode.week;
       selectedDay = selectedDay.add(Duration(days: 7));
     });
+    _reloadVisibleRange();
   }
 
-  void previousWeek(){
+  void previousWeek() {
     setState(() {
       calendarViewMode = CalendarViewMode.week;
       selectedDay = selectedDay.subtract(Duration(days: 7));
     });
+    _reloadVisibleRange();
   }
 
-  void nextMonth(){
+  void nextMonth() {
     setState(() {
       calendarViewMode = CalendarViewMode.month;
-      selectedDay = DateTime(selectedDay.year,selectedDay.month+1,selectedDay.day);
+      selectedDay = DateTime(
+        selectedDay.year,
+        selectedDay.month + 1,
+        selectedDay.day,
+      );
     });
+    _reloadVisibleRange();
   }
 
-  void previousMonth(){
+  void previousMonth() {
     setState(() {
       calendarViewMode = CalendarViewMode.month;
-      selectedDay = DateTime(selectedDay.year,selectedDay.month-1,selectedDay.day);
+      selectedDay = DateTime(
+        selectedDay.year,
+        selectedDay.month - 1,
+        selectedDay.day,
+      );
     });
+    _reloadVisibleRange();
   }
 
-  void nextYear(){
+  void nextYear() {
     setState(() {
       calendarViewMode = CalendarViewMode.year;
-      selectedDay = DateTime(selectedDay.year+1);
+      selectedDay = DateTime(selectedDay.year + 1);
     });
+    _reloadVisibleRange();
   }
 
-  void previousYear(){
+  void previousYear() {
     setState(() {
       calendarViewMode = CalendarViewMode.year;
-      selectedDay = DateTime(selectedDay.year-1);
+      selectedDay = DateTime(selectedDay.year - 1);
     });
+    _reloadVisibleRange();
   }
 
+  void _reloadVisibleRange() {
+    final provider = context.read<EventProvider>();
 
+    late final DateTime start;
+    late final DateTime end;
 
+    switch (calendarViewMode) {
+      case CalendarViewMode.day:
+        start = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+        end = start.add(const Duration(days: 1));
+        break;
+      case CalendarViewMode.week:
+        start = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+        end = start.add(const Duration(days: 7));
+        break;
+      case CalendarViewMode.month:
+        start = DateTime(selectedDay.year, selectedDay.month, 1);
+        end = DateTime(selectedDay.year, selectedDay.month + 1, 1);
+        break;
+      case CalendarViewMode.year:
+        start = DateTime(selectedDay.year, 1, 1);
+        end = DateTime(selectedDay.year + 1, 1, 1);
+        break;
+    }
 
+    provider.loadEvents(rangeStart: start, rangeEnd: end);
+  }
 
+  void _cycleNext() {
+    switch (calendarViewMode) {
+      case CalendarViewMode.day:
+        return nextDay();
+      case CalendarViewMode.week:
+        return nextWeek();
+      case CalendarViewMode.month:
+        return nextMonth();
+      case CalendarViewMode.year:
+        return nextYear();
+    }
+  }
 
-
+  void _cyclePrevious() {
+    switch (calendarViewMode) {
+      case CalendarViewMode.day:
+        return previousDay();
+      case CalendarViewMode.week:
+        return previousWeek();
+      case CalendarViewMode.month:
+        return previousMonth();
+      case CalendarViewMode.year:
+        return previousYear();
+    }
+  }
 }
-
-
-
-

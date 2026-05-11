@@ -71,8 +71,8 @@ class EventModel {
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'])
           : null,
-      educationDetails: json['lectureDetails'] != null
-          ? EducationDetails.fromJson(json['lectureDetails'])
+      educationDetails: json['educationDetails'] != null
+          ? EducationDetails.fromJson(json['educationDetails'])
           : null,
       subtype: json['subtype'] != null
           ? EventSubtype.values.byName(json['subtype'])
@@ -96,7 +96,7 @@ class EventModel {
       'type': type.name,
       'isCompleted': isCompleted,
       'deadline': deadline?.toIso8601String(),
-      'lectureDetails': educationDetails?.toJson(),
+      'educationDetails': educationDetails?.toJson(),
       'subtype': subtype?.name,
       'recurringRule': recurringRule?.toJson(),
     };
@@ -115,7 +115,7 @@ class EventModel {
       'type': type.name,
       'isCompleted': isCompleted ? 1 : 0,
       'deadline': deadline?.toIso8601String(),
-      'lectureDetails': educationDetails != null ? jsonEncode(educationDetails!.toJson()) : null,
+      'educationDetails': educationDetails != null ? jsonEncode(educationDetails!.toJson()) : null,
       'subtype': subtype?.name,
       'recurringRule': recurringRule != null ? jsonEncode(recurringRule!.toJson()) : null,
     };

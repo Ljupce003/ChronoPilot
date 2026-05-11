@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:chrono_pilot/domain/enums/event_type.dart';
+import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_overrides_repository.dart';
@@ -15,6 +18,7 @@ class EventProvider extends ChangeNotifier {
   late final EventService eventService;
   late final EventOverrideService overrideService;
   late final EventTimelineService timelineService;
+  bool _initialized = false;
 
   EventProvider({required this.repository, required this.overridesRepository}) {
     eventService = EventService(repository);
@@ -23,6 +27,8 @@ class EventProvider extends ChangeNotifier {
       eventsRepository: repository,
       overrideService: overrideService,
     );
+
+    unawaited(_initialize());
   }
 
   List<EventViewModel> _events = [];
@@ -34,6 +40,60 @@ class EventProvider extends ChangeNotifier {
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
+
+  Future<void> _initialize() async {
+    if (_initialized) {
+      return;
+    }
+    _initialized = true;
+
+    await _seedIfNeeded();
+    await loadEvents();
+  }
+
+  Future<void> _seedIfNeeded() async {
+    final existing = await repository.getAllEvents();
+    if (existing.isNotEmpty) {
+      return;
+    }
+
+    final now = DateTime.now();
+
+    await eventService.createEvent(
+      CreateEventRequest(
+        userId: 'seed-user',
+        title: 'Seed Single Event',
+        type: EventType.single,
+        start: now.subtract(const Duration(hours: 1)),
+        end: now.add(const Duration(hours: 1)),
+      ),
+    );
+
+    await eventService.createEvent(
+      CreateEventRequest(
+        userId: 'seed-user',
+        title: 'Seed Education Event',
+        type: EventType.education,
+        start: now.add(const Duration(hours: 2)),
+        end: now.add(const Duration(hours: 3)),
+        educationDetails: EducationDetails(
+          courseName: 'Course 1',
+          professor: 'Professor 1',
+          room: 'Room 1',
+          studyProgramCode: 'SP1',
+        ),
+      ),
+    );
+
+    await eventService.createEvent(
+      CreateEventRequest(
+        userId: 'seed-user',
+        title: 'Seed Todo Event',
+        type: EventType.todo,
+        deadline: now.add(const Duration(hours: 4)),
+      ),
+    );
+  }
 
   Future<void> loadEvents({DateTime? rangeStart, DateTime? rangeEnd}) async {
     _isLoading = true;

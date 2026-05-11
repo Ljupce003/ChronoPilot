@@ -151,7 +151,7 @@ class EventTimelineService {
   EventViewModel? _mapBaseEvent(EventModel event) {
     switch (event.type) {
       case EventType.single:
-      case EventType.lecture:
+      case EventType.education:
         if (event.startDateTime == null || event.endDateTime == null) {
           return null;
         }

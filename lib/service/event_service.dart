@@ -65,9 +65,9 @@ class EventService {
         );
 
     // --------------------
-    // LECTURE
+    // EDUCATION
     // --------------------
-      case EventType.lecture:
+      case EventType.education:
         return EventModel(
           id: id,
           userId: r.userId,
@@ -77,7 +77,7 @@ class EventService {
           educationDetails: r.educationDetails,
           subtype: r.subtype,
           location: r.location,
-          type: EventType.lecture,
+          type: EventType.education,
         );
 
     // --------------------

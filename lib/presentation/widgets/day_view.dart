@@ -13,6 +13,10 @@ class DayView extends StatelessWidget {
     final provider = context.watch<EventProvider>();
     final events = provider.getEventsForDay(selected);
 
+    if (provider.isLoading && events.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     if (events.isEmpty) {
       return const Center(child: Text('No events for this day'));
     }

@@ -1,6 +1,6 @@
 enum EventType {
   single,
   todo,
-  lecture,
+  education,
   recurring,
 }
