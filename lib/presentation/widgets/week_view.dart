@@ -4,6 +4,8 @@ import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/presentation/screens/event_details_screen.dart';
 
 class WeekView extends StatelessWidget {
   final DateTime selected;
@@ -331,41 +333,74 @@ class _WeekEventTile extends StatelessWidget {
     final start = TimeOfDay.fromDateTime(event.startDateTime).format(context);
     final end = TimeOfDay.fromDateTime(event.endDateTime).format(context);
 
-    return Card(
-      margin: const EdgeInsets.all(1),
-      color: Colors.blue.shade50,
-      elevation: 1,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isVeryCompact = constraints.maxHeight < 40;
-          final isCompact = constraints.maxHeight < 60;
 
-          return Padding(
-            padding: EdgeInsets.all(isVeryCompact ? 2 : 4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event.title,
-                  maxLines: isVeryCompact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: isVeryCompact ? 10 : 12,
-                  ),
-                ),
-                if (!isVeryCompact)
+    final isEdu = event.contentType == EventContentType.education;
+    final isTodo = event.contentType == EventContentType.todo;
+
+    // Color coding based on event type
+    final bgColor = isEdu
+        ? Colors.deepPurple.shade50
+        : isTodo ? Colors.orange.shade50 : Colors.blue.shade50;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailsScreen(eventId: event.id),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.all(1),
+        color: bgColor,
+        elevation: 1,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isVeryCompact = constraints.maxHeight < 40;
+            final isCompact = constraints.maxHeight < 60;
+            final hasSpaceForDetails = constraints.maxHeight >= 80;
+
+            return Padding(
+              padding: EdgeInsets.all(isVeryCompact ? 2 : 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '$start - $end',
-                    maxLines: 1,
+                    event.title,
+                    maxLines: isVeryCompact ? 1 : 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: isCompact ? 9 : 10),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: isVeryCompact ? 10 : 12,
+                    ),
                   ),
-              ],
-            ),
-          );
-        },
+                  if (!isVeryCompact)
+                    Text(
+                      '$start - $end',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: isCompact ? 9 : 10),
+                    ),
+
+                  // Condensed Education details for the tighter Week View
+                  if (hasSpaceForDetails && isEdu && event.educationDetails != null)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          '${event.educationDetails!.room} • ${event.educationSubtype?.name.toUpperCase() ?? ''}',
+                          style: TextStyle(fontSize: 9, color: Colors.grey.shade800),
+                          overflow: TextOverflow.fade,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

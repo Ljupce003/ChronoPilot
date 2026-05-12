@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
+import 'package:chrono_pilot/domain/models/event_model.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_overrides_repository.dart';
@@ -221,6 +222,18 @@ class EventProvider extends ChangeNotifier {
 
     await overrideService.markOverrideAsCancelled(overrideId, note: note);
     await _reloadCurrentRange();
+  }
+
+  EventViewModel? getEventViewModelById(String id) {
+    try {
+      return _events.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<EventModel> getRawEvent(String eventId) async {
+    return await repository.getEventById(eventId);
   }
 
   List<EventViewModel> getEventsForDay(DateTime day) {

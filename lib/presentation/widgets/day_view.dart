@@ -4,6 +4,8 @@ import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
+import 'package:chrono_pilot/presentation/screens/event_details_screen.dart';
 
 class DayView extends StatelessWidget {
   final DateTime selected;
@@ -26,6 +28,7 @@ class DayView extends StatelessWidget {
     final timeline = _DayTimeline(
       day: selected,
       events: events,
+      provider: provider
     );
 
     return timeline;
@@ -35,8 +38,9 @@ class DayView extends StatelessWidget {
 class _DayTimeline extends StatelessWidget {
   final DateTime day;
   final List<EventViewModel> events;
+  final EventProvider provider;
 
-  const _DayTimeline({required this.day, required this.events});
+  const _DayTimeline({required this.day, required this.events, required this.provider});
 
   static const double _hourRowHeight = 80;
   static const double _timeLabelWidth = 64;
@@ -124,7 +128,7 @@ class _DayTimeline extends StatelessWidget {
       left: left,
       width: _laneWidth,
       height: height,
-      child: _DayEventTile(event: item.event),
+      child: _DayEventTile(event: item.event,provider:provider),
     );
   }
 
@@ -202,62 +206,102 @@ class _DayTimeline extends StatelessWidget {
 class _DayEventTile extends StatelessWidget {
   final EventViewModel event;
 
-  const _DayEventTile({required this.event});
+  const _DayEventTile({required this.event, required EventProvider provider});
 
   @override
   Widget build(BuildContext context) {
     final start = TimeOfDay.fromDateTime(event.startDateTime).format(context);
     final end = TimeOfDay.fromDateTime(event.endDateTime).format(context);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-      color: Colors.blue.shade50,
-      elevation: 1,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isVeryCompact = constraints.maxHeight < 56;
-          final isCompact = constraints.maxHeight < 84;
-          final padding = isVeryCompact
-              ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
-              : const EdgeInsets.all(8);
+    // Grab the raw event to access content types and details
+    final isEdu = event.contentType == EventContentType.education;
+    final isTodo = event.contentType == EventContentType.todo;
 
-          return Padding(
-            padding: padding,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event.title,
-                  maxLines: isVeryCompact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                if (!isVeryCompact) const SizedBox(height: 4),
-                if (!isVeryCompact)
+    // Color coding based on event type
+    final bgColor = isEdu
+        ? Colors.deepPurple.shade50
+        : isTodo ? Colors.orange.shade50 : Colors.blue.shade50;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EventDetailsScreen(eventId: event.id),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+        color: bgColor,
+        elevation: 1,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isVeryCompact = constraints.maxHeight < 56;
+            final isCompact = constraints.maxHeight < 84;
+            final hasSpaceForDetails = constraints.maxHeight >= 110; // New threshold for extra details
+
+            final padding = isVeryCompact
+                ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
+                : const EdgeInsets.all(8);
+
+            return Padding(
+              padding: padding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '$start - $end',
-                    maxLines: 1,
+                    event.title,
+                    maxLines: isVeryCompact ? 1 : 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                if (!isCompact) const SizedBox(height: 2),
-                if (!isCompact)
-                  Text(
-                    event.scheduleAndContentText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                if (!isCompact && event.overrideId != null)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Icon(Icons.edit_calendar, size: 16),
-                  ),
-              ],
-            ),
-          );
-        },
+                  if (!isVeryCompact) const SizedBox(height: 4),
+                  if (!isVeryCompact)
+                    Text(
+                      '$start - $end',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  if (!isCompact) const SizedBox(height: 2),
+                  if (!isCompact)
+                    Text(
+                      event.scheduleAndContentText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+
+                  // Expand to show Education specifics if space allows
+                  if (hasSpaceForDetails && isEdu && event.educationDetails != null)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          'Class: ${event.educationDetails!.courseName}\n'
+                              'Room: ${event.educationDetails!.room}\n'
+                              'Prof: ${event.educationDetails!.professor}\n'
+                              'Type: ${event.educationSubtype?.name.toUpperCase() ?? 'N/A'}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+                          overflow: TextOverflow.fade, // Fades out if it still clips
+                        ),
+                      ),
+                    ),
+
+                  if (!isCompact && event.overrideId != null && !hasSpaceForDetails)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Icon(Icons.edit_calendar, size: 16),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
