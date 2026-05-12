@@ -253,4 +253,14 @@ class EventProvider extends ChangeNotifier {
       rangeEnd: _rangeEnd,
     );
   }
+
+  List<EventViewModel> getEventsForYear(int year) {
+    final yearStart = DateTime(year, 1, 1);
+    final yearEnd = DateTime(year + 1, 1, 1);
+
+    return _events.where((e) {
+      return e.endDateTime.isAfter(yearStart) &&
+          e.startDateTime.isBefore(yearEnd);
+    }).toList();
+  }
 }

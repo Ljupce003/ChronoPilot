@@ -1,4 +1,5 @@
 import 'package:chrono_pilot/presentation/screens/calendar_screen.dart';
+import 'package:chrono_pilot/presentation/screens/create_event_screen.dart';
 import 'package:chrono_pilot/presentation/screens/event_list_screen.dart';
 import 'package:chrono_pilot/presentation/screens/menu_page.dart';
 import 'package:chrono_pilot/repository/event_overrides_repository.dart';
@@ -39,7 +40,15 @@ class MyApp extends StatelessWidget {
           '/calendar': (context) => const CalendarScreen(),
           '/profile':
               (context) => const Scaffold(body: Center(child: Text('Profile'))),
-          '/create-event': (context) => const Text("Create event"),
+          '/create-event': (context) {
+            // Optional arguments: { 'initialStart': DateTime }
+            final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+            final initial = args != null && args['initialStart'] is DateTime
+                ? args['initialStart'] as DateTime
+                : null;
+
+            return CreateEventScreen(initialStart: initial);
+          },
         },
         initialRoute: '/calendar',
       ),

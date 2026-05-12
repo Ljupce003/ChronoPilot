@@ -188,7 +188,10 @@ class _CalendarViewState extends State<CalendarScreen> {
           onDaySelected: selectDay,
         );
       case CalendarViewMode.year:
-        return YearView(selected: selectedDay);
+        return YearView(
+          selected: selectedDay,
+          onMonthSelected: selectMonth,
+        );
     }
   }
 
@@ -319,7 +322,49 @@ class _CalendarViewState extends State<CalendarScreen> {
   }
 
   void _onAddEvent(BuildContext context) {
-    Navigator.pushNamed(context, "/create-event");
+    DateTime initialStart;
+
+    switch (calendarViewMode) {
+      case CalendarViewMode.day:
+        initialStart = DateTime(
+          selectedDay.year,
+          selectedDay.month,
+          selectedDay.day,
+          DateTime.now().hour,
+          DateTime.now().minute,
+        );
+        break;
+      case CalendarViewMode.week:
+        // selectedDay is start of week
+        initialStart = DateTime(
+          selectedDay.year,
+          selectedDay.month,
+          selectedDay.day,
+          DateTime.now().hour,
+          DateTime.now().minute,
+        );
+        break;
+      case CalendarViewMode.month:
+        initialStart = DateTime(
+          selectedDay.year,
+          selectedDay.month,
+          1,
+          DateTime.now().hour,
+          DateTime.now().minute,
+        );
+        break;
+      case CalendarViewMode.year:
+        initialStart = DateTime(
+          selectedDay.year,
+          1,
+          1,
+          DateTime.now().hour,
+          DateTime.now().minute,
+        );
+        break;
+    }
+
+    Navigator.pushNamed(context, "/create-event", arguments: {'initialStart': initialStart});
   }
 
   void setCurrentDay() {
@@ -366,11 +411,11 @@ class _CalendarViewState extends State<CalendarScreen> {
   }
 
   void selectYear(DateTime selected) {
-    var newSelectedDay = DateTime(selected.year);
+    final target = DateTime(selectedDay.year);
 
     setState(() {
       calendarViewMode = CalendarViewMode.year;
-      selectedDay = newSelectedDay;
+      selectedDay = _resolveYearSelection(target);
     });
     _reloadVisibleRange();
   }
@@ -436,17 +481,23 @@ class _CalendarViewState extends State<CalendarScreen> {
   }
 
   void nextYear() {
+    final target = DateTime(
+      selectedDay.year + 1,
+    );
     setState(() {
       calendarViewMode = CalendarViewMode.year;
-      selectedDay = DateTime(selectedDay.year + 1);
+      selectedDay = _resolveYearSelection(target);
     });
     _reloadVisibleRange();
   }
 
   void previousYear() {
+    final target = DateTime(
+      selectedDay.year - 1,
+    );
     setState(() {
       calendarViewMode = CalendarViewMode.year;
-      selectedDay = DateTime(selectedDay.year - 1);
+      selectedDay = _resolveYearSelection(target);
     });
     _reloadVisibleRange();
   }
@@ -464,6 +515,20 @@ class _CalendarViewState extends State<CalendarScreen> {
       isCurrentMonth ? today.day : 1,
     );
   }
+
+  DateTime _resolveYearSelection(DateTime targetMonth) {
+    final today = DateTime.now();
+
+    final isCurrentYear =
+        today.year == targetMonth.year;
+
+    return DateTime(
+      targetMonth.year,
+      isCurrentYear ? today.month : 1,
+    );
+  }
+
+
 
   void _reloadVisibleRange() {
     final provider = context.read<EventProvider>();
