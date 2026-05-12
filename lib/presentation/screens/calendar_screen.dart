@@ -94,7 +94,18 @@ class _CalendarViewState extends State<CalendarScreen> {
           else
             Expanded(
               child: Center(
-                child: Text(
+                child: calendarViewMode == CalendarViewMode.month
+                    ? TextButton(
+                  onPressed: _showMonthPicker,
+                  child: Text(
+                    _getDateRangeLabel(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                )
+                    : Text(
                   _getDateRangeLabel(),
                   style: const TextStyle(fontSize: 16),
                 ),
@@ -172,9 +183,138 @@ class _CalendarViewState extends State<CalendarScreen> {
           onDaySelected: selectDay,
         );
       case CalendarViewMode.month:
-        return MonthView(selected: selectedDay);
+        return MonthView(
+          selected: selectedDay,
+          onDaySelected: selectDay,
+        );
       case CalendarViewMode.year:
         return YearView(selected: selectedDay);
+    }
+  }
+
+  Future<void> _showMonthPicker() async {
+    int selectedYear = selectedDay.year;
+    int selectedMonth = selectedDay.month;
+
+    final picked = await showDialog<DateTime>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Dialog(
+              child: SizedBox(
+                width: 340,
+                height: 500,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              setModalState(() {
+                                selectedYear--;
+                              });
+                            },
+                            icon: const Icon(Icons.chevron_left),
+                          ),
+                          Text(
+                            '$selectedYear',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge,
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              setModalState(() {
+                                selectedYear++;
+                              });
+                            },
+                            icon: const Icon(Icons.chevron_right),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Divider(height: 1),
+
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: 12,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 2,
+                        ),
+                        itemBuilder: (context, index) {
+                          final month = index + 1;
+
+                          final isSelected =
+                              month == selectedMonth &&
+                                  selectedYear ==
+                                      selectedDay.year;
+
+                          return InkWell(
+                            borderRadius:
+                            BorderRadius.circular(12),
+                            onTap: () {
+                              Navigator.pop(
+                                context,
+                                DateTime(
+                                  selectedYear,
+                                  month,
+                                ),
+                              );
+                            },
+                            child: AnimatedContainer(
+                              duration:
+                              const Duration(milliseconds: 150),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.blue.shade100
+                                    : Colors.grey.shade100,
+                                borderRadius:
+                                BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.blue
+                                      : Colors.grey.shade300,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  _getMonthName(month),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (picked != null) {
+      selectMonth(picked);
     }
   }
 
@@ -205,11 +345,11 @@ class _CalendarViewState extends State<CalendarScreen> {
   }
 
   void selectMonth(DateTime selected) {
-    var newSelectedDay = DateTime(selected.year, selected.month);
     setState(() {
       calendarViewMode = CalendarViewMode.month;
-      selectedDay = newSelectedDay;
+      selectedDay = _resolveMonthSelection(selected);
     });
+
     _reloadVisibleRange();
   }
 
@@ -268,26 +408,30 @@ class _CalendarViewState extends State<CalendarScreen> {
   }
 
   void nextMonth() {
+    final target = DateTime(
+      selectedDay.year,
+      selectedDay.month + 1,
+    );
+
     setState(() {
       calendarViewMode = CalendarViewMode.month;
-      selectedDay = DateTime(
-        selectedDay.year,
-        selectedDay.month + 1,
-        selectedDay.day,
-      );
+      selectedDay = _resolveMonthSelection(target);
     });
+
     _reloadVisibleRange();
   }
 
   void previousMonth() {
+    final target = DateTime(
+      selectedDay.year,
+      selectedDay.month - 1,
+    );
+
     setState(() {
       calendarViewMode = CalendarViewMode.month;
-      selectedDay = DateTime(
-        selectedDay.year,
-        selectedDay.month - 1,
-        selectedDay.day,
-      );
+      selectedDay = _resolveMonthSelection(target);
     });
+
     _reloadVisibleRange();
   }
 
@@ -305,6 +449,20 @@ class _CalendarViewState extends State<CalendarScreen> {
       selectedDay = DateTime(selectedDay.year - 1);
     });
     _reloadVisibleRange();
+  }
+
+  DateTime _resolveMonthSelection(DateTime targetMonth) {
+    final today = DateTime.now();
+
+    final isCurrentMonth =
+        today.year == targetMonth.year &&
+            today.month == targetMonth.month;
+
+    return DateTime(
+      targetMonth.year,
+      targetMonth.month,
+      isCurrentMonth ? today.day : 1,
+    );
   }
 
   void _reloadVisibleRange() {
