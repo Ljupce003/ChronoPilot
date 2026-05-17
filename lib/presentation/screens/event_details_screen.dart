@@ -1,6 +1,7 @@
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
+import 'package:chrono_pilot/presentation/screens/edit_event_screen.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +11,69 @@ class EventDetailsScreen extends StatelessWidget {
 
   const EventDetailsScreen({super.key, required this.eventId});
 
+  void _openEditFlow(BuildContext context, EventViewModel event) {
+    final isRecurringOccurrence =
+        event.scheduleType == EventScheduleType.recurring &&
+        event.recurringEventId != null;
+
+    if (!isRecurringOccurrence) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EditEventScreen(event: event),
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit Recurring Event'),
+          content: const Text(
+            'Do you want to edit the whole recurring event or make an override for this instance?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditEventScreen(event: event),
+                  ),
+                );
+              },
+              child: const Text('Modify Recurring Event'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        EditEventScreen(event: event, forceSingleOverride: true),
+                  ),
+                );
+              },
+              child: const Text('Make Override'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _confirmDelete(BuildContext context, EventViewModel event) {
-    final isRecurring = event.scheduleType == EventScheduleType.recurring;
+    final isRecurring = event.scheduleType == EventScheduleType.recurring ||
+        event.recurringEventId != null;
 
     showDialog(
       context: context,
@@ -29,24 +91,38 @@ class EventDetailsScreen extends StatelessWidget {
             if (isRecurring) ...[
               // Option 1: Only this occurrence
               TextButton(
-                onPressed: () {
-                  context.read<EventProvider>().cancelRecurringOccurrence(
-                    userId: event.userId,
-                    recurringEventId: event.recurringEventId!,
-                    originalDateTime: event.startDateTime,
-                  );
-                  Navigator.pop(context); // Close dialog
-                  Navigator.pop(context); // Go back to calendar
+                onPressed: () async {
+                  final provider = context.read<EventProvider>();
+
+                  if (event.overrideId != null) {
+                    // Revert a modified/cancelled occurrence back to series default.
+                    await provider.removeRecurringOverride(event.overrideId!);
+                  } else {
+                    await provider.cancelRecurringOccurrence(
+                      userId: event.userId,
+                      recurringEventId: event.recurringEventId!,
+                      originalDateTime: event.startDateTime,
+                    );
+                  }
+
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context); // Go back to calendar
+                  }
                 },
                 child: const Text("Only this instance"),
               ),
               // Option 2: All occurrences (The series)
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                onPressed: () {
-                  context.read<EventProvider>().deleteEvent(event.recurringEventId!);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                onPressed: () async {
+                  await context
+                      .read<EventProvider>()
+                      .deleteEvent(event.recurringEventId!);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }
                 },
                 child: const Text("Whole series"),
               ),
@@ -54,10 +130,12 @@ class EventDetailsScreen extends StatelessWidget {
             // Standard delete for one-time events
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                onPressed: () {
-                  context.read<EventProvider>().deleteEvent(event.id);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                onPressed: () async {
+                  await context.read<EventProvider>().deleteEvent(event.id);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }
                 },
                 child: const Text("Delete"),
               ),
@@ -89,10 +167,7 @@ class EventDetailsScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              // Future Edit Navigation
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit page coming soon!')),
-              );
+              _openEditFlow(context, event);
             },
           ),
           IconButton(

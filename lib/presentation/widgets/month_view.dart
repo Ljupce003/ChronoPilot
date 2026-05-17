@@ -1,10 +1,8 @@
-import 'dart:ffi';
 
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math';
 
 class MonthView extends StatefulWidget {
   final DateTime selected;

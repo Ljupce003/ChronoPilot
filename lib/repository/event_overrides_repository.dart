@@ -95,5 +95,20 @@ class EventOverridesRepository {
 
     return res.map(eventOverrideFromDb).toList();
   }
+
+  Future<List<EventOverride>> getOverridesByReplacementEventId(
+    String replacementEventId,
+  ) async {
+    final db = await localDB.database;
+
+    final res = await db.query(
+      'event_overrides',
+      where: 'replacementEventId = ?',
+      whereArgs: [replacementEventId],
+      orderBy: 'originalDateTime DESC',
+    );
+
+    return res.map(eventOverrideFromDb).toList();
+  }
 }
 

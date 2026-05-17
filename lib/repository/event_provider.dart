@@ -5,6 +5,7 @@ import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/domain/models/event_model.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
+import 'package:chrono_pilot/presentation/models/edit_event_request.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_overrides_repository.dart';
 import 'package:chrono_pilot/repository/events_repository.dart';
@@ -23,8 +24,8 @@ class EventProvider extends ChangeNotifier {
   bool _initialized = false;
 
   EventProvider({required this.repository, required this.overridesRepository}) {
-    eventService = EventService(repository);
     overrideService = EventOverrideService(overridesRepository);
+    eventService = EventService(repository,overrideService);
     timelineService = EventTimelineService(
       eventsRepository: repository,
       overrideService: overrideService,
@@ -147,13 +148,23 @@ class EventProvider extends ChangeNotifier {
     _rangeStart = resolvedStart;
     _rangeEnd = resolvedEnd;
 
-    _events = await timelineService.buildViewModelsForRange(
-      rangeStart: resolvedStart,
-      rangeEnd: resolvedEnd,
-    );
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      _events = await timelineService.buildViewModelsForRange(
+        rangeStart: resolvedStart,
+        rangeEnd: resolvedEnd,
+      );
+    } catch (e, st) {
+      // Log error and ensure we don't stay in loading state. Swallow to allow UI
+      // to continue and show empty list instead of frozen loader.
+      if (kDebugMode) {
+        // ignore: avoid_print
+        print('Error building timeline view models: $e\n$st');
+      }
+      _events = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> createEvent(CreateEventRequest request) async {
@@ -161,12 +172,43 @@ class EventProvider extends ChangeNotifier {
     await _reloadCurrentRange();
   }
 
-  Future<void> updateEvent(String id, CreateEventRequest request) async {
+  Future<void> updateEvent(String id, EditEventRequest request) async {
     await eventService.updateEvent(id, request);
     await _reloadCurrentRange();
   }
 
   Future<void> deleteEvent(String id) async {
+    // If deleting a recurring event, first remove any overrides and their
+    // replacement events to avoid leaving orphan overrides behind.
+    try {
+      final event = await repository.getEventById(id);
+      if (event.scheduleType == EventScheduleType.recurring) {
+        final overrides = await overridesRepository.getOverridesForRecurringEvent(id);
+        for (final o in overrides) {
+          if (o.replacementEventId != null) {
+            await eventService.deleteEvent(o.replacementEventId!);
+          }
+          await overridesRepository.deleteOverride(o.id);
+        }
+      } else {
+        // If deleting a one-time replacement event that came from a modified
+        // override, also delete the override row so the original recurring
+        // occurrence becomes visible again.
+        final replacementRefs = await overridesRepository
+            .getOverridesByReplacementEventId(id);
+        for (final o in replacementRefs) {
+          await overridesRepository.deleteOverride(o.id);
+        }
+      }
+    } catch (e) {
+      // If we can't fetch event or overrides, continue with deletion to avoid
+      // leaving UI in an inconsistent state. Log in debug.
+      if (kDebugMode) {
+        // ignore: avoid_print
+        print('Error while cleaning overrides before deleting event $id: $e');
+      }
+    }
+
     await eventService.deleteEvent(id);
     await _reloadCurrentRange();
   }
@@ -214,13 +256,17 @@ class EventProvider extends ChangeNotifier {
   }
 
   Future<void> removeRecurringOverride(String overrideId, {String? note}) async {
+    // When the user chooses to remove an override, we should delete the
+    // override row entirely and also delete any replacement event that was
+    // created for that override. (Use `cancelRecurringOccurrence` to create a
+    // cancelled override instead.)
     final existing = await overrideService.getOverrideById(overrideId);
 
     if (existing.replacementEventId != null) {
       await eventService.deleteEvent(existing.replacementEventId!);
     }
 
-    await overrideService.markOverrideAsCancelled(overrideId, note: note);
+    await overridesRepository.deleteOverride(overrideId);
     await _reloadCurrentRange();
   }
 

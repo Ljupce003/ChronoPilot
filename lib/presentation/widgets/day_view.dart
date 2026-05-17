@@ -95,7 +95,7 @@ class _DayTimeline extends StatelessWidget {
               SizedBox(
                 width: _timeLabelWidth,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.only(top: 1,right: 5),
                   child: Text(
                     label,
                     textAlign: TextAlign.right,
@@ -121,7 +121,7 @@ class _DayTimeline extends StatelessWidget {
     final top = (item.startMinute / 60) * _hourRowHeight;
     final rawHeight = ((item.endMinute - item.startMinute) / 60) * _hourRowHeight;
     final height = math.max(rawHeight, _minEventHeight);
-    final left = _timeLabelWidth + (item.laneIndex * (_laneWidth + _laneGap));
+    final left = _timeLabelWidth + (item.laneIndex * (_laneWidth + _laneGap)) + 10;
 
     return Positioned(
       top: top,
@@ -247,57 +247,74 @@ class _DayEventTile extends StatelessWidget {
 
             return Padding(
               padding: padding,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.title,
-                    maxLines: isVeryCompact ? 1 : 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  if (!isVeryCompact) const SizedBox(height: 4),
-                  if (!isVeryCompact)
+              child: ClipRect(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      '$start - $end',
-                      maxLines: 1,
+                      event.title,
+                      maxLines: isVeryCompact ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  if (!isCompact) const SizedBox(height: 2),
-                  if (!isCompact)
-                    Text(
-                      event.scheduleAndContentText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade700,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: isVeryCompact ? 12 : 13,
                       ),
                     ),
-
-                  // Expand to show Education specifics if space allows
-                  if (hasSpaceForDetails && isEdu && event.educationDetails != null)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          'Class: ${event.educationDetails!.courseName}\n'
-                              'Room: ${event.educationDetails!.room}\n'
-                              'Prof: ${event.educationDetails!.professor}\n'
-                              'Type: ${event.educationSubtype?.name.toUpperCase() ?? 'N/A'}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
-                          overflow: TextOverflow.fade, // Fades out if it still clips
+                    if (!isVeryCompact && constraints.maxHeight > 24) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '$start - $end',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: isCompact ? 10 : 11,
+                          color: Colors.grey.shade700,
                         ),
                       ),
-                    ),
+                    ],
+                    if (!isCompact && constraints.maxHeight > 40) ...[
+                      const SizedBox(height: 1),
+                      Text(
+                        event.scheduleAndContentText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
 
-                  if (!isCompact && event.overrideId != null && !hasSpaceForDetails)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 4),
-                      child: Icon(Icons.edit_calendar, size: 16),
-                    ),
-                ],
+                    // Show Education specifics if space allows
+                    if (hasSpaceForDetails && isEdu && event.educationDetails != null)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: SingleChildScrollView(
+                            child: Text(
+                              'Class: ${event.educationDetails!.courseName}\n'
+                                  'Room: ${event.educationDetails!.room}\n'
+                                  'Prof: ${event.educationDetails!.professor}\n'
+                                  'Type: ${event.educationSubtype?.name.toUpperCase() ?? 'N/A'}',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: Colors.grey.shade800,
+                                height: 1.2,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    if (!isCompact && event.overrideId != null && !hasSpaceForDetails && constraints.maxHeight > 32)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.edit_calendar, size: 14),
+                      ),
+                  ],
+                ),
               ),
             );
           },
