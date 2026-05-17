@@ -3,6 +3,7 @@ import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/presentation/screens/edit_event_screen.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/presentation/widgets/event_location_map_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -199,6 +200,12 @@ class EventDetailsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+
+            if (event.location != null) ...[
+              _buildSectionHeader('Location'),
+              EventLocationMapCard(location: event.location!),
+              const SizedBox(height: 24),
+            ],
 
             if (event.description != null && event.description!.isNotEmpty) ...[
               const Text('Description', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),

@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Chrono Pilot uses your location to tag event locations when you choose current location.</string>
 </dict>
 </plist>
