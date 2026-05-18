@@ -44,6 +44,11 @@ class AppColors {
 
 class AppTheme {
   static ThemeData get darkTheme {
+    // Softened border/divider color calculation for dark mode grid lines
+    final softDarkDivider = AppColors.darkBorder.withAlpha(
+      (0.25 * 255).round(),
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -57,14 +62,16 @@ class AppTheme {
         onSurface: AppColors.darkTextPrimary,
         error: AppColors.error,
         onError: Colors.white,
+        outline: softDarkDivider,
+        // Added here so calendar layout grids benefit too
         brightness: Brightness.dark,
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.darkSurface,
         foregroundColor: AppColors.darkTextPrimary,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.darkTextPrimary,
@@ -73,18 +80,14 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.darkCardVariant,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         shadowColor: Colors.black.withAlpha((0.3 * 255).round()),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -111,9 +114,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -133,20 +134,20 @@ class AppTheme {
         ),
         labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
         hintStyle: const TextStyle(color: AppColors.darkTextDisabled),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.darkTextSecondary,
         elevation: 8,
         type: BottomNavigationBarType.fixed,
       ),
-      dividerColor: AppColors.darkBorder,
-      dividerTheme: const DividerThemeData(
-        color: AppColors.darkBorder,
-        space: 16,
-      ),
+      dividerColor: softDarkDivider,
+      dividerTheme: DividerThemeData(color: softDarkDivider, space: 16),
       textTheme: _darkTextTheme,
       iconTheme: const IconThemeData(color: AppColors.darkTextPrimary),
     );
@@ -166,14 +167,15 @@ class AppTheme {
         onSurface: AppColors.lightTextPrimary,
         error: AppColors.error,
         onError: Colors.white,
+        outline: AppColors.lightBorder,
         brightness: Brightness.light,
       ),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightSurface,
         foregroundColor: AppColors.lightTextPrimary,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.lightTextPrimary,
@@ -182,18 +184,14 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.lightCardVariant,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         shadowColor: Colors.black.withAlpha((0.1 * 255).round()),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -220,9 +218,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -242,9 +238,12 @@ class AppTheme {
         ),
         labelStyle: const TextStyle(color: AppColors.lightTextSecondary),
         hintStyle: const TextStyle(color: AppColors.lightTextDisabled),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.lightTextSecondary,
@@ -407,4 +406,3 @@ class AppTheme {
     ),
   );
 }
-

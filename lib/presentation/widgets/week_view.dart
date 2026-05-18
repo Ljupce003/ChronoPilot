@@ -8,11 +8,34 @@ import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/presentation/screens/event_details_screen.dart';
 
-class WeekView extends StatelessWidget {
+class WeekView extends StatefulWidget {
   final DateTime selected;
   final ValueChanged<DateTime>? onDaySelected;
 
   const WeekView({super.key, required this.selected, this.onDaySelected});
+
+  @override
+  State<WeekView> createState() => _WeekViewState();
+}
+
+class _WeekViewState extends State<WeekView> {
+  // Explicit controllers for both scroll directions to stop the assertion errors
+  late final ScrollController _horizontalScrollController;
+  late final ScrollController _verticalScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _horizontalScrollController = ScrollController();
+    _verticalScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _horizontalScrollController.dispose();
+    _verticalScrollController.dispose();
+    super.dispose();
+  }
 
   static const double _hourRowHeight = 80;
   static const double _timeLabelWidth = 64;
@@ -20,13 +43,14 @@ class WeekView extends StatelessWidget {
   static const double _minDayColumnWidth = 160;
   static const double _laneWidth = 140;
   static const double _laneGap = 8;
+  static const double _dayColumnInnerPadding = 6;
   static const double _minEventHeight = 28;
   static const double _dayHeaderHeight = 60;
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<EventProvider>();
-    final weekStart = _getWeekStart(selected);
+    final weekStart = _getWeekStart(widget.selected);
     final weekEnd = weekStart.add(const Duration(days: 7));
     final allEvents = provider.getEventsForWeek(weekStart, weekEnd);
 
@@ -41,7 +65,7 @@ class WeekView extends StatelessWidget {
     final dayColumns = _buildDayColumns(weekStart: weekStart, events: allEvents);
     final totalColumnsWidth = dayColumns.fold<double>(0, (sum, column) => sum + column.width) + (_dayColumnGap * (dayColumns.length - 1));
     final totalWidth = _timeLabelWidth + _dayColumnGap + totalColumnsWidth;
-    final hoursHeight = 24 * _hourRowHeight;
+    final hoursHeight = (25 * _hourRowHeight) + 40;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -52,8 +76,10 @@ class WeekView extends StatelessWidget {
         return SizedBox(
           height: viewportHeight,
           child: Scrollbar(
+            controller: _horizontalScrollController,
             thumbVisibility: true,
             child: SingleChildScrollView(
+              controller: _horizontalScrollController,
               scrollDirection: Axis.horizontal,
               child: SizedBox(
                 width: totalWidth,
@@ -97,9 +123,9 @@ class WeekView extends StatelessWidget {
                               ),
                             );
 
-                            if (onDaySelected == null) return headerCell;
+                            if (widget.onDaySelected == null) return headerCell;
                             return GestureDetector(
-                              onTap: () => onDaySelected!(col.dayDate),
+                              onTap: () => widget.onDaySelected!(col.dayDate),
                               child: headerCell,
                             );
                           }),
@@ -107,71 +133,80 @@ class WeekView extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: SingleChildScrollView(
-                        child: SizedBox(
-                          height: hoursHeight,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: _timeLabelWidth,
-                                child: _TimeLabelsColumn(
-                                  headerHeight: 0,
-                                  hourRowHeight: _hourRowHeight,
+                      child: Scrollbar(
+                        controller: _verticalScrollController,
+                        child: SingleChildScrollView(
+                          controller: _verticalScrollController,
+                          child: SizedBox(
+                            height: hoursHeight,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: _timeLabelWidth,
+                                  child: _TimeLabelsColumn(
+                                    headerHeight: 0,
+                                    hourRowHeight: _hourRowHeight,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: _dayColumnGap),
-                              ...dayColumns.map((col) {
-                                final bodyCell = SizedBox(
-                                  width: col.width,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.surface,
-                                      border: Border(
-                                        right: BorderSide(color: Theme.of(context).colorScheme.outline),
-                                      ),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        Column(
-                                          children: List.generate(
-                                            24,
-                                            (_) => SizedBox(
-                                              height: _hourRowHeight,
-                                              child: Divider(
-                                                height: 1,
-                                                thickness: 1,
-                                                color: Theme.of(context).colorScheme.outline,
-                                              ),
-                                            ),
+                                const SizedBox(width: _dayColumnGap),
+                                ...dayColumns.map((col) {
+                                  final bodyCell = SizedBox(
+                                      width: col.width,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.surface,
+                                          border: Border(
+                                            right: BorderSide(color: Theme.of(context).colorScheme.outline),
                                           ),
                                         ),
-                                        ...col.events.map((event) {
-                                          final top = (event.startMinute / 60) * _hourRowHeight;
-                                          final rawHeight = ((event.endMinute - event.startMinute) / 60) * _hourRowHeight;
-                                          final height = math.max(rawHeight, _minEventHeight);
-                                          final left = event.laneIndex * (_laneWidth + _laneGap);
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(left: _dayColumnInnerPadding),
+                                          child: Stack(
+                                            children: [
+                                              Column(
+                                                children: List.generate(
+                                                  25,
+                                                      (_) => SizedBox(
+                                                    height: _hourRowHeight,
+                                                    child: Align(
+                                                      alignment: Alignment.topCenter,
+                                                      child: Divider(
+                                                        height: 0,
+                                                        thickness: 1,
+                                                        color: Theme.of(context).colorScheme.outline,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              ...col.events.map((event) {
+                                                final top = (event.startMinute / 60) * _hourRowHeight;
+                                                final rawHeight = ((event.endMinute - event.startMinute) / 60) * _hourRowHeight;
+                                                final height = math.max(rawHeight, _minEventHeight);
+                                                final left = event.laneIndex * (_laneWidth + _laneGap);
 
-                                          return Positioned(
-                                            top: top,
-                                            left: left,
-                                            width: _laneWidth,
-                                            height: height,
-                                            child: _WeekEventTile(event: event.event),
-                                          );
-                                        }),
-                                      ],
-                                    ),
-                                  ),
-                                );
+                                                return Positioned(
+                                                  top: top,
+                                                  left: left,
+                                                  width: _laneWidth,
+                                                  height: height,
+                                                  child: _WeekEventTile(event: event.event),
+                                                );
+                                              }),
+                                            ],
+                                          ),
+                                        ),
+                                      ));
 
-                                if (onDaySelected == null) return bodyCell;
-                                return GestureDetector(
-                                  onTap: () => onDaySelected!(col.dayDate),
-                                  child: bodyCell,
-                                );
-                              }),
-                            ],
+                                  if (widget.onDaySelected == null) return bodyCell;
+                                  return GestureDetector(
+                                    onTap: () => widget.onDaySelected!(col.dayDate),
+                                    child: bodyCell,
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -189,7 +224,6 @@ class WeekView extends StatelessWidget {
   DateTime _getWeekStart(DateTime date) {
     return date.subtract(Duration(days: date.weekday - 1));
   }
-  // _buildDayColumnWidgets removed — week view now constructs headers and body separately.
 
   List<_DayColumn> _buildDayColumns({
     required DateTime weekStart,
@@ -256,7 +290,7 @@ class WeekView extends StatelessWidget {
       final maxLaneCount = layouts.isEmpty ? 1 : layouts.map((e) => e.laneIndex).reduce(math.max) + 1;
       final columnWidth = math.max(
         _minDayColumnWidth,
-        (maxLaneCount * _laneWidth) + ((maxLaneCount - 1) * _laneGap),
+        (maxLaneCount * _laneWidth) + ((maxLaneCount - 1) * _laneGap) + (2 * _dayColumnInnerPadding),
       );
 
       columns.add(
@@ -274,7 +308,6 @@ class WeekView extends StatelessWidget {
   }
 }
 
-// Top-level helper for day short names used by header
 String _dayName(int weekday) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   return days[weekday - 1];
@@ -296,15 +329,30 @@ class _TimeLabelsColumn extends StatelessWidget {
     return Column(
       children: [
         SizedBox(height: headerHeight),
-        ...List.generate(24, (hour) {
-          final label = '${hour.toString().padLeft(2, '0')}:00';
+
+        ...List.generate(25, (hour) {
+          // Skip drawing the first (00:00) label entirely to keep layout clean,
+          // but return an empty placeholder box to preserve grid measurements.
+          if (hour == 0) {
+            return SizedBox(height: hourRowHeight);
+          }
+
+          final safeHour = hour == 24 ? 0 : hour;
+          final label = '${safeHour.toString().padLeft(2, '0')}:00';
+
           return SizedBox(
             height: hourRowHeight,
             child: Align(
               alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 6, top: 2),
-                child: Text(label, style: textStyle),
+              child: FractionalTranslation(
+                translation: const Offset(0, -0.5),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Text(
+                    label,
+                    style: textStyle,
+                  ),
+                ),
               ),
             ),
           );
@@ -313,8 +361,6 @@ class _TimeLabelsColumn extends StatelessWidget {
     );
   }
 }
-
-// _WeekDayColumn removed - week view builds header and columns directly
 
 class _WeekEventTile extends StatelessWidget {
   final EventViewModel event;
@@ -326,16 +372,14 @@ class _WeekEventTile extends StatelessWidget {
     final start = TimeOfDay.fromDateTime(event.startDateTime).format(context);
     final end = TimeOfDay.fromDateTime(event.endDateTime).format(context);
 
-
     final isEdu = event.contentType == EventContentType.education;
     final isTodo = event.contentType == EventContentType.todo;
 
-    // Color coding based on event type
     final accent = isEdu
         ? AppColors.education
         : isTodo
-            ? AppColors.todo
-            : AppColors.ordinary;
+        ? AppColors.todo
+        : AppColors.ordinary;
     final bgColor = Color.alphaBlend(
       accent.withAlpha((0.22 * 255).round()),
       Theme.of(context).colorScheme.surface,
@@ -351,7 +395,7 @@ class _WeekEventTile extends StatelessWidget {
         );
       },
       child: Card(
-        margin: const EdgeInsets.all(1),
+        margin: const EdgeInsets.fromLTRB(2,1,1,1),
         color: bgColor,
         elevation: 1,
         child: LayoutBuilder(
@@ -387,16 +431,15 @@ class _WeekEventTile extends StatelessWidget {
                       style: TextStyle(fontSize: isCompact ? 9 : 10),
                     ),
 
-                  // Condensed Education details for the tighter Week View
                   if (hasSpaceForDetails && isEdu && event.educationDetails != null)
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 2.0),
-                         child: Text(
-                           '${event.educationDetails!.room} • ${event.educationSubtype?.name.toUpperCase() ?? ''}',
-                            style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.onSurface.withAlpha((0.8 * 255).round())),
-                           overflow: TextOverflow.fade,
-                         ),
+                        child: Text(
+                          '${event.educationDetails!.room} • ${event.educationSubtype?.name.toUpperCase() ?? ''}',
+                          style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.onSurface.withAlpha((0.8 * 255).round())),
+                          overflow: TextOverflow.fade,
+                        ),
                       ),
                     ),
                 ],
@@ -452,6 +495,3 @@ class _DayColumn {
     required this.maxLaneCount,
   });
 }
-
-// (Removed unused _WeekViewConstants)
-

@@ -26,25 +26,50 @@ class DayView extends StatelessWidget {
       return const Center(child: Text('No events for this day'));
     }
 
-    final timeline = _DayTimeline(
+    return _DayTimeline(
       day: selected,
       events: events,
-      provider: provider
+      provider: provider,
     );
-
-    return timeline;
   }
 }
 
-class _DayTimeline extends StatelessWidget {
+class _DayTimeline extends StatefulWidget {
   final DateTime day;
   final List<EventViewModel> events;
   final EventProvider provider;
 
-  const _DayTimeline({required this.day, required this.events, required this.provider});
+  const _DayTimeline({
+    required this.day,
+    required this.events,
+    required this.provider,
+  });
+
+  @override
+  State<_DayTimeline> createState() => _DayTimelineState();
+}
+
+class _DayTimelineState extends State<_DayTimeline> {
+  // Explicit controllers for both scroll planes to banish assertion errors
+  late final ScrollController _verticalScrollController;
+  late final ScrollController _horizontalScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _verticalScrollController = ScrollController();
+    _horizontalScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _verticalScrollController.dispose();
+    _horizontalScrollController.dispose();
+    super.dispose();
+  }
 
   static const double _hourRowHeight = 80;
-  static const double _timeLabelWidth = 64;
+  static const double _timeLabelWidth = 40;
   static const double _laneWidth = 220;
   static const double _laneGap = 10;
   static const double _minEventHeight = 28;
@@ -52,13 +77,14 @@ class _DayTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final layouts = _buildLayoutEvents(day: day, events: events);
+    final layouts = _buildLayoutEvents(day: widget.day, events: widget.events);
     final laneCount = layouts.isEmpty
         ? 1
         : layouts.map((e) => e.laneIndex).reduce(math.max) + 1;
 
     final contentWidth = (laneCount * (_laneWidth + _laneGap)) + 24;
-    final canvasHeight = (24 * _hourRowHeight) + _bottomPadding;
+    // Expanded canvas to support 25 timeline dividers smoothly
+    final canvasHeight = (25 * _hourRowHeight) + _bottomPadding;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -69,41 +95,54 @@ class _DayTimeline extends StatelessWidget {
         return SizedBox(
           height: viewportHeight,
           child: Scrollbar(
+            controller: _verticalScrollController,
             thumbVisibility: true,
             child: SingleChildScrollView(
-              child: SizedBox(
-                height: canvasHeight,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: _timeLabelWidth,
-                      child: _DayTimeLabelsColumn(
-                        hourRowHeight: _hourRowHeight,
+              controller: _verticalScrollController,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: SizedBox(
+                  height: canvasHeight,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: SizedBox(
+                          width: _timeLabelWidth,
+                          child: _DayTimeLabelsColumn(
+                            hourRowHeight: _hourRowHeight,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Scrollbar(
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: contentWidth,
-                            height: canvasHeight,
-                            child: Stack(
-                              children: [
-                                _buildHourGridContent(context),
-                                ...layouts.map(
-                                  (item) => _buildPositionedEventContent(context, item),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Scrollbar(
+                          controller: _horizontalScrollController,
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            controller: _horizontalScrollController,
+                            scrollDirection: Axis.horizontal,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: SizedBox(
+                                width: contentWidth,
+                                height: canvasHeight,
+                                child: Stack(
+                                  children: [
+                                    _buildHourGridContent(context),
+                                    ...layouts.map(
+                                          (item) => _buildPositionedEventContent(context, item),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -113,11 +152,10 @@ class _DayTimeline extends StatelessWidget {
     );
   }
 
-  // _buildHourGrid removed — day view uses _buildHourGridContent and a separate time labels column.
-
   Widget _buildHourGridContent(BuildContext context) {
+    // Generate 25 entries to give us that clean bottom closure line
     return Column(
-      children: List.generate(24, (hour) {
+      children: List.generate(25, (hour) {
         return SizedBox(
           height: _hourRowHeight,
           child: Align(
@@ -144,12 +182,11 @@ class _DayTimeline extends StatelessWidget {
       left: left,
       width: _laneWidth,
       height: height,
-      child: _DayEventTile(event: item.event, provider: provider),
+      child: _DayEventTile(event: item.event, provider: widget.provider),
     );
   }
 
   Widget _buildPositionedEventContent(BuildContext context, _LayoutEvent item) {
-    // Same as _buildPositionedEvent but for new layout
     return _buildPositionedEvent(context, item);
   }
 
@@ -162,7 +199,6 @@ class _DayTimeline extends StatelessWidget {
 
     final prepared = <_PreparedEvent>[];
 
-    // Keep original order as a stable tie-breaker for same-start events.
     for (var index = 0; index < events.length; index++) {
       final event = events[index];
       final clippedStart = event.startDateTime.isBefore(dayStart)
@@ -192,8 +228,6 @@ class _DayTimeline extends StatelessWidget {
     prepared.sort((a, b) {
       final byStart = a.startMinute.compareTo(b.startMinute);
       if (byStart != 0) return byStart;
-
-      // Earlier index keeps left priority when start time is identical.
       return a.originalOrder.compareTo(b.originalOrder);
     });
 
@@ -234,16 +268,14 @@ class _DayEventTile extends StatelessWidget {
     final start = TimeOfDay.fromDateTime(event.startDateTime).format(context);
     final end = TimeOfDay.fromDateTime(event.endDateTime).format(context);
 
-    // Grab the raw event to access content types and details
     final isEdu = event.contentType == EventContentType.education;
     final isTodo = event.contentType == EventContentType.todo;
 
-    // Color coding based on event type
     final accent = isEdu
         ? AppColors.education
         : isTodo
-            ? AppColors.todo
-            : AppColors.ordinary;
+        ? AppColors.todo
+        : AppColors.ordinary;
     final bgColor = Color.alphaBlend(
       accent.withAlpha((0.22 * 255).round()),
       Theme.of(context).colorScheme.surface,
@@ -266,7 +298,7 @@ class _DayEventTile extends StatelessWidget {
           builder: (context, constraints) {
             final isVeryCompact = constraints.maxHeight < 56;
             final isCompact = constraints.maxHeight < 84;
-            final hasSpaceForDetails = constraints.maxHeight >= 110; // New threshold for extra details
+            final hasSpaceForDetails = constraints.maxHeight >= 110;
 
             final padding = isVeryCompact
                 ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
@@ -290,30 +322,29 @@ class _DayEventTile extends StatelessWidget {
                     ),
                     if (!isVeryCompact && constraints.maxHeight > 24) ...[
                       const SizedBox(height: 2),
-                     Text(
-                       '$start - $end',
-                       maxLines: 1,
-                       overflow: TextOverflow.ellipsis,
-                       style: TextStyle(
-                         fontSize: isCompact ? 10 : 11,
-                         color: Theme.of(context).colorScheme.onSurface.withAlpha((0.7 * 255).round()),
-                       ),
-                     ),
+                      Text(
+                        '$start - $end',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: isCompact ? 10 : 11,
+                          color: Theme.of(context).colorScheme.onSurface.withAlpha((0.7 * 255).round()),
+                        ),
+                      ),
                     ],
                     if (!isCompact && constraints.maxHeight > 40) ...[
                       const SizedBox(height: 1),
-                       Text(
-                         event.scheduleAndContentText,
-                         maxLines: 1,
-                         overflow: TextOverflow.ellipsis,
-                         style: TextStyle(
-                           fontSize: 9,
-                           color: Theme.of(context).colorScheme.onSurface.withAlpha((0.6 * 255).round()),
-                         ),
-                       ),
+                      Text(
+                        event.scheduleAndContentText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: Theme.of(context).colorScheme.onSurface.withAlpha((0.6 * 255).round()),
+                        ),
+                      ),
                     ],
 
-                    // Show Education specifics if space allows
                     if (hasSpaceForDetails && isEdu && event.educationDetails != null)
                       Expanded(
                         child: Padding(
@@ -325,10 +356,10 @@ class _DayEventTile extends StatelessWidget {
                                   'Prof: ${event.educationDetails!.professor}\n'
                                   'Type: ${event.educationSubtype?.name.toUpperCase() ?? 'N/A'}',
                               style: TextStyle(
-                                 fontSize: 9,
-                                  color: Theme.of(context).colorScheme.onSurface.withAlpha((0.8 * 255).round()),
-                                 height: 1.2,
-                               ),
+                                fontSize: 9,
+                                color: Theme.of(context).colorScheme.onSurface.withAlpha((0.8 * 255).round()),
+                                height: 1.2,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -379,7 +410,6 @@ class _LayoutEvent {
   });
 }
 
-// Simple time labels column used by DayView when the timeline is separated
 class _DayTimeLabelsColumn extends StatelessWidget {
   final double hourRowHeight;
 
@@ -390,15 +420,26 @@ class _DayTimeLabelsColumn extends StatelessWidget {
     final textStyle = Theme.of(context).textTheme.bodySmall;
 
     return Column(
-      children: List.generate(24, (hour) {
-        final label = '${hour.toString().padLeft(2, '0')}:00';
+      children: List.generate(25, (hour) {
+        // Skips rendering text elements for the structural index zero placeholder
+        if (hour == 0) {
+          return SizedBox(height: hourRowHeight);
+        }
+
+        // Transforms structural 24-index pointer into trailing 00:00 closure label
+        final safeHour = hour == 24 ? 0 : hour;
+        final label = '${safeHour.toString().padLeft(2, '0')}:00';
+
         return SizedBox(
           height: hourRowHeight,
           child: Align(
             alignment: Alignment.topRight,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 6, top: 2),
-              child: Text(label, style: textStyle),
+            child: FractionalTranslation(
+              translation: const Offset(0, -0.5),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(label, style: textStyle),
+              ),
             ),
           ),
         );
@@ -406,4 +447,3 @@ class _DayTimeLabelsColumn extends StatelessWidget {
     );
   }
 }
-
