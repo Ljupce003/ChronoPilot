@@ -11,7 +11,7 @@ class EventListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red.shade300,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: const Text("Events"),
         centerTitle: true,
       ),

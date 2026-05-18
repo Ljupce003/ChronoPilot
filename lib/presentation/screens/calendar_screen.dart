@@ -4,6 +4,7 @@ import 'package:chrono_pilot/presentation/widgets/week_view.dart';
 import 'package:chrono_pilot/presentation/widgets/month_view.dart';
 import 'package:chrono_pilot/presentation/widgets/year_view.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -72,7 +73,7 @@ class _CalendarViewState extends State<CalendarScreen> {
 
   Widget _buildNavigationBar() {
     return Container(
-      color: Colors.grey.shade100,
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -83,32 +84,38 @@ class _CalendarViewState extends State<CalendarScreen> {
             icon: const Icon(Icons.navigate_before),
             iconSize: 24,
           ),
-          if (calendarViewMode == CalendarViewMode.day)
-            TextButton(
-              onPressed: _showDatePicker,
-              child: Text(
-                '${selectedDay.day} / ${selectedDay.month} / ${selectedDay.year}',
-                style: const TextStyle(color: Colors.black87, fontSize: 16),
-              ),
-            )
+           if (calendarViewMode == CalendarViewMode.day)
+             TextButton(
+               onPressed: _showDatePicker,
+               child: Text(
+                 '${selectedDay.day} / ${selectedDay.month} / ${selectedDay.year}',
+                 style: TextStyle(
+                   color: Theme.of(context).colorScheme.onSurface,
+                   fontSize: 16,
+                 ),
+               ),
+             )
           else
             Expanded(
               child: Center(
-                child: calendarViewMode == CalendarViewMode.month
-                    ? TextButton(
-                  onPressed: _showMonthPicker,
-                  child: Text(
-                    _getDateRangeLabel(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                    ),
-                  ),
-                )
-                    : Text(
-                  _getDateRangeLabel(),
-                  style: const TextStyle(fontSize: 16),
-                ),
+                 child: calendarViewMode == CalendarViewMode.month
+                     ? TextButton(
+                   onPressed: _showMonthPicker,
+                   child: Text(
+                     _getDateRangeLabel(),
+                     style: TextStyle(
+                       fontSize: 16,
+                       color: Theme.of(context).colorScheme.onSurface,
+                     ),
+                   ),
+                 )
+                     : Text(
+                   _getDateRangeLabel(),
+                   style: TextStyle(
+                     fontSize: 16,
+                     color: Theme.of(context).colorScheme.onSurface,
+                   ),
+                 ),
               ),
             ),
           IconButton(
@@ -263,47 +270,48 @@ class _CalendarViewState extends State<CalendarScreen> {
                                   selectedYear ==
                                       selectedDay.year;
 
-                          return InkWell(
-                            borderRadius:
-                            BorderRadius.circular(12),
-                            onTap: () {
-                              Navigator.pop(
-                                context,
-                                DateTime(
-                                  selectedYear,
-                                  month,
-                                ),
-                              );
-                            },
-                            child: AnimatedContainer(
-                              duration:
-                              const Duration(milliseconds: 150),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.blue.shade100
-                                    : Colors.grey.shade100,
-                                borderRadius:
-                                BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.blue
-                                      : Colors.grey.shade300,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  _getMonthName(month),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
+                           return InkWell(
+                             borderRadius:
+                             BorderRadius.circular(12),
+                             onTap: () {
+                               Navigator.pop(
+                                 context,
+                                 DateTime(
+                                   selectedYear,
+                                   month,
+                                 ),
+                               );
+                             },
+                             child: AnimatedContainer(
+                               duration:
+                               const Duration(milliseconds: 150),
+                               decoration: BoxDecoration(
+                                 color: isSelected
+                                     ? AppColors.primary.withAlpha((0.2 * 255).round())
+                                     : Theme.of(context).colorScheme.surface,
+                                 borderRadius:
+                                 BorderRadius.circular(12),
+                                 border: Border.all(
+                                   color: isSelected
+                                       ? AppColors.primary
+                                       : Theme.of(context).colorScheme.outline,
+                                   width: isSelected ? 2 : 1,
+                                 ),
+                               ),
+                               child: Center(
+                                 child: Text(
+                                   _getMonthName(month),
+                                   textAlign: TextAlign.center,
+                                   style: TextStyle(
+                                     fontWeight: isSelected
+                                         ? FontWeight.w600
+                                         : FontWeight.normal,
+                                     color: Theme.of(context).colorScheme.onSurface,
+                                   ),
+                                 ),
+                               ),
+                             ),
+                           );
                         },
                       ),
                     ),
@@ -584,17 +592,16 @@ class _CalendarViewState extends State<CalendarScreen> {
     }
   }
 
-  void _showDatePicker() {
-    showDatePicker(
+  void _showDatePicker() async {
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: selectedDay,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-    ).then((pickedDate) {
-      if (pickedDate != null) {
-        selectDay(pickedDate);
-      }
-    });
+    );
+    if (pickedDate != null) {
+      selectDay(pickedDate);
+    }
   }
 }
 

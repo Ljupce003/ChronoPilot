@@ -1,5 +1,7 @@
 import 'package:chrono_pilot/presentation/widgets/home_button.dart';
+import 'package:chrono_pilot/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -9,10 +11,24 @@ class MenuPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("ChronoPilot"),
+        title: const Text("ChronoPilot"),
         centerTitle: true,
-
         actions: [
+          IconButton(
+            onPressed: () {
+              context.read<ThemeProvider>().toggleTheme();
+            },
+            tooltip: 'Toggle Theme',
+            icon: Consumer<ThemeProvider>(
+              builder: (context, themeProvider, _) {
+                return Icon(
+                  themeProvider.themeMode == ThemeMode.dark
+                      ? Icons.light_mode
+                      : Icons.dark_mode,
+                );
+              },
+            ),
+          ),
           IconButton(
             onPressed: () {
               // TODO later: navigate to profile
