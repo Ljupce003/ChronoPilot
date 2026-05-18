@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:chrono_pilot/utils/app_theme.dart';
+import 'package:chrono_pilot/utils/event_classification.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
@@ -268,11 +269,11 @@ class _DayEventTile extends StatelessWidget {
     final start = TimeOfDay.fromDateTime(event.startDateTime).format(context);
     final end = TimeOfDay.fromDateTime(event.endDateTime).format(context);
 
-    final isEdu = event.contentType == EventContentType.education;
+    final isEdu = event.contentType == EventContentType.education && event.educationSubtype !=null;
     final isTodo = event.contentType == EventContentType.todo;
 
     final accent = isEdu
-        ? AppColors.education
+        ? getColorForCard(event.educationSubtype!)
         : isTodo
         ? AppColors.todo
         : AppColors.ordinary;

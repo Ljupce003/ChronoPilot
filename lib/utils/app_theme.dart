@@ -29,11 +29,12 @@ class AppColors {
   static const Color darkTextDisabled = Color(0xFF64748B);
 
   // Semantic Event Colors
-  static const Color education = Color(0xFF10B981);
-  static const Color todo = Color(0xFFF59E0B);
   static const Color ordinary = Color(0xFF64748B);
-  static const Color important = Color(0xFFEF4444);
-  static const Color recurring = Color(0xFF8B5CF6);
+  static const Color todo = Color(0xFFF59E0B);
+  // Semantic Event Colors for Education
+  static const Color educationLecture = Color(0xFF4A68E8);
+  static const Color educationAuditory = Color(0xFF5EA55F);
+  static const Color educationLab = Color(0xFFF45151);
 
   // Status Colors
   static const Color success = Color(0xFF10B981);
