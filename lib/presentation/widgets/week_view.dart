@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
@@ -38,76 +39,157 @@ class WeekView extends StatelessWidget {
     }
 
     final dayColumns = _buildDayColumns(weekStart: weekStart, events: allEvents);
-    final totalWidth = _timeLabelWidth + _dayColumnGap +
-        dayColumns.fold<double>(0, (sum, column) => sum + column.width) +
-        (_dayColumnGap * (dayColumns.length - 1));
-    final totalHeight = _dayHeaderHeight + (24 * _hourRowHeight);
+    final totalColumnsWidth = dayColumns.fold<double>(0, (sum, column) => sum + column.width) + (_dayColumnGap * (dayColumns.length - 1));
+    final totalWidth = _timeLabelWidth + _dayColumnGap + totalColumnsWidth;
+    final hoursHeight = 24 * _hourRowHeight;
 
-    return Scrollbar(
-      thumbVisibility: true,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          width: totalWidth,
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: totalHeight,
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    width: _timeLabelWidth,
-                    height: totalHeight,
-                    child: _TimeLabelsColumn(
-                      headerHeight: _dayHeaderHeight,
-                      hourRowHeight: _hourRowHeight,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewportHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : MediaQuery.of(context).size.height;
+
+        return SizedBox(
+          height: viewportHeight,
+          child: Scrollbar(
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: totalWidth,
+                height: viewportHeight,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: _dayHeaderHeight,
+                      child: Row(
+                        children: [
+                          SizedBox(width: _timeLabelWidth),
+                          const SizedBox(width: _dayColumnGap),
+                          ...dayColumns.map((col) {
+                            final headerCell = SizedBox(
+                              width: col.width,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(color: Theme.of(context).colorScheme.outline),
+                                    right: BorderSide(color: Theme.of(context).colorScheme.outline),
+                                  ),
+                                  color: Theme.of(context).colorScheme.surface,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _dayName(col.dayDate.weekday),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${col.dayDate.day}',
+                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+
+                            if (onDaySelected == null) return headerCell;
+                            return GestureDetector(
+                              onTap: () => onDaySelected!(col.dayDate),
+                              child: headerCell,
+                            );
+                          }),
+                        ],
+                      ),
                     ),
-                  ),
-                  ..._buildDayColumnWidgets(dayColumns, totalHeight: totalHeight, weekStart: weekStart),
-                ],
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: SizedBox(
+                          height: hoursHeight,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: _timeLabelWidth,
+                                child: _TimeLabelsColumn(
+                                  headerHeight: 0,
+                                  hourRowHeight: _hourRowHeight,
+                                ),
+                              ),
+                              const SizedBox(width: _dayColumnGap),
+                              ...dayColumns.map((col) {
+                                final bodyCell = SizedBox(
+                                  width: col.width,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.surface,
+                                      border: Border(
+                                        right: BorderSide(color: Theme.of(context).colorScheme.outline),
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        Column(
+                                          children: List.generate(
+                                            24,
+                                            (_) => SizedBox(
+                                              height: _hourRowHeight,
+                                              child: Divider(
+                                                height: 1,
+                                                thickness: 1,
+                                                color: Theme.of(context).colorScheme.outline,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        ...col.events.map((event) {
+                                          final top = (event.startMinute / 60) * _hourRowHeight;
+                                          final rawHeight = ((event.endMinute - event.startMinute) / 60) * _hourRowHeight;
+                                          final height = math.max(rawHeight, _minEventHeight);
+                                          final left = event.laneIndex * (_laneWidth + _laneGap);
+
+                                          return Positioned(
+                                            top: top,
+                                            left: left,
+                                            width: _laneWidth,
+                                            height: height,
+                                            child: _WeekEventTile(event: event.event),
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                  ),
+                                );
+
+                                if (onDaySelected == null) return bodyCell;
+                                return GestureDetector(
+                                  onTap: () => onDaySelected!(col.dayDate),
+                                  child: bodyCell,
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   DateTime _getWeekStart(DateTime date) {
     return date.subtract(Duration(days: date.weekday - 1));
   }
-
-  List<Widget> _buildDayColumnWidgets(
-    List<_DayColumn> dayColumns, {
-    required double totalHeight,
-    required DateTime weekStart,
-  }) {
-    final widgets = <Widget>[];
-    var left = _timeLabelWidth + _dayColumnGap;
-
-    for (final column in dayColumns) {
-      widgets.add(
-        Positioned(
-          left: left,
-          top: 0,
-          width: column.width,
-          height: totalHeight,
-          child: _WeekDayColumn(
-            column: column,
-            headerHeight: _dayHeaderHeight,
-            hourRowHeight: _hourRowHeight,
-            laneWidth: _laneWidth,
-            minEventHeight: _minEventHeight,
-            onTap: onDaySelected == null ? null : () => onDaySelected!(column.dayDate),
-          ),
-        ),
-      );
-      left += column.width + _dayColumnGap;
-    }
-
-    return widgets;
-  }
+  // _buildDayColumnWidgets removed — week view now constructs headers and body separately.
 
   List<_DayColumn> _buildDayColumns({
     required DateTime weekStart,
@@ -192,6 +274,12 @@ class WeekView extends StatelessWidget {
   }
 }
 
+// Top-level helper for day short names used by header
+String _dayName(int weekday) {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return days[weekday - 1];
+}
+
 class _TimeLabelsColumn extends StatelessWidget {
   final double headerHeight;
   final double hourRowHeight;
@@ -226,102 +314,7 @@ class _TimeLabelsColumn extends StatelessWidget {
   }
 }
 
-class _WeekDayColumn extends StatelessWidget {
-  final _DayColumn column;
-  final double headerHeight;
-  final double hourRowHeight;
-  final double laneWidth;
-  final double minEventHeight;
-  final VoidCallback? onTap;
-
-  const _WeekDayColumn({
-    required this.column,
-    required this.headerHeight,
-    required this.hourRowHeight,
-    required this.laneWidth,
-    required this.minEventHeight,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              right: BorderSide(color: Colors.grey.shade300),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                height: headerHeight,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  color: Colors.grey.shade50,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _dayName(column.dayDate.weekday),
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    const SizedBox(height: 2),
-                    Text('${column.dayDate.day}', style: const TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Column(
-                      children: List.generate(24, (hour) {
-                        return SizedBox(
-                          height: hourRowHeight,
-                          child: Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                        );
-                      }),
-                    ),
-                    ...column.events.map((event) {
-                      final top = (event.startMinute / 60) * hourRowHeight;
-                      final rawHeight = ((event.endMinute - event.startMinute) / 60) * hourRowHeight;
-                      final height = math.max(rawHeight, minEventHeight);
-                      final left = event.laneIndex * (_WeekViewConstants.laneWidth + _WeekViewConstants.laneGap);
-
-                      return Positioned(
-                        top: top,
-                        left: left,
-                        width: laneWidth,
-                        height: height,
-                        child: _WeekEventTile(event: event.event),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _dayName(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
-  }
-}
+// _WeekDayColumn removed - week view builds header and columns directly
 
 class _WeekEventTile extends StatelessWidget {
   final EventViewModel event;
@@ -338,9 +331,15 @@ class _WeekEventTile extends StatelessWidget {
     final isTodo = event.contentType == EventContentType.todo;
 
     // Color coding based on event type
-    final bgColor = isEdu
-        ? Colors.deepPurple.shade50
-        : isTodo ? Colors.orange.shade50 : Colors.blue.shade50;
+    final accent = isEdu
+        ? AppColors.education
+        : isTodo
+            ? AppColors.todo
+            : AppColors.ordinary;
+    final bgColor = Color.alphaBlend(
+      accent.withAlpha((0.22 * 255).round()),
+      Theme.of(context).colorScheme.surface,
+    );
 
     return GestureDetector(
       onTap: () {
@@ -361,8 +360,12 @@ class _WeekEventTile extends StatelessWidget {
             final isCompact = constraints.maxHeight < 60;
             final hasSpaceForDetails = constraints.maxHeight >= 80;
 
+            final padding = isVeryCompact
+                ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
+                : const EdgeInsets.all(8);
+
             return Padding(
-              padding: EdgeInsets.all(isVeryCompact ? 2 : 4),
+              padding: padding,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,11 +392,11 @@ class _WeekEventTile extends StatelessWidget {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 2.0),
-                        child: Text(
-                          '${event.educationDetails!.room} • ${event.educationSubtype?.name.toUpperCase() ?? ''}',
-                          style: TextStyle(fontSize: 9, color: Colors.grey.shade800),
-                          overflow: TextOverflow.fade,
-                        ),
+                         child: Text(
+                           '${event.educationDetails!.room} • ${event.educationSubtype?.name.toUpperCase() ?? ''}',
+                            style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.onSurface.withAlpha((0.8 * 255).round())),
+                           overflow: TextOverflow.fade,
+                         ),
                       ),
                     ),
                 ],
@@ -450,8 +453,5 @@ class _DayColumn {
   });
 }
 
-class _WeekViewConstants {
-  static const double laneWidth = 140;
-  static const double laneGap = 8;
-}
+// (Removed unused _WeekViewConstants)
 

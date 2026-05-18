@@ -1,5 +1,6 @@
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -66,15 +67,7 @@ class YearView extends StatelessWidget {
     );
   }
 
-  Widget _buildYearHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Text(
-        '${selected.year}',
-        style: Theme.of(context).textTheme.headlineSmall,
-      ),
-    );
-  }
+  // Year header removed (unused). Kept intentionally empty to avoid unused element warning.
 
   Map<String, List<EventViewModel>> _groupEventsByDay(
     List<EventViewModel> events,
@@ -143,7 +136,7 @@ class _MonthBox extends StatelessWidget {
     }
 
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -155,13 +148,13 @@ class _MonthBox extends StatelessWidget {
               height: 22,
               child: Center(
                 child: Text(
-                  _monthName(month),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.blue : Colors.black87,
-                    fontSize: 12,
-                  ),
-                ),
+                   _monthName(month),
+                   style: TextStyle(
+                     fontWeight: FontWeight.w600,
+                     color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurface,
+                     fontSize: 12,
+                   ),
+                 ),
               ),
             ),
 
@@ -194,16 +187,16 @@ class _MonthBox extends StatelessWidget {
                             SizedBox(
                               height: constraints.maxHeight * 0.65,
                               child: Center(
-                                child: Text(
-                                  '${day.day}',
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    height: 1,
-                                    color: inMonth
-                                        ? Colors.black87
-                                        : Colors.grey,
-                                  ),
-                                ),
+                                 child: Text(
+                                   '${day.day}',
+                                   style: TextStyle(
+                                     fontSize: 8,
+                                     height: 1,
+                                     color: inMonth
+                                            ? Theme.of(context).colorScheme.onSurface
+                                            : Theme.of(context).colorScheme.onSurface.withAlpha((0.4 * 255).round()),
+                                   ),
+                                 ),
                               ),
                             ),
 
@@ -212,15 +205,15 @@ class _MonthBox extends StatelessWidget {
                               height: constraints.maxHeight * 0.35,
                               child: Center(
                                 child: hasEvents
-                                    ? Container(
-                                        width: 3,
-                                        height: 3,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.blue,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
+                                     ? Container(
+                                         width: 3,
+                                         height: 3,
+                                         decoration: const BoxDecoration(
+                                           color: AppColors.primary,
+                                           shape: BoxShape.circle,
+                                         ),
+                                       )
+                                     : const SizedBox.shrink(),
                               ),
                             ),
                           ],

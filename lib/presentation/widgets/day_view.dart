@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
@@ -47,6 +48,7 @@ class _DayTimeline extends StatelessWidget {
   static const double _laneWidth = 220;
   static const double _laneGap = 10;
   static const double _minEventHeight = 28;
+  static const double _bottomPadding = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -55,62 +57,76 @@ class _DayTimeline extends StatelessWidget {
         ? 1
         : layouts.map((e) => e.laneIndex).reduce(math.max) + 1;
 
-    final canvasWidth = _timeLabelWidth + (laneCount * (_laneWidth + _laneGap)) + 24;
-    final canvasHeight = 24 * _hourRowHeight;
+    final contentWidth = (laneCount * (_laneWidth + _laneGap)) + 24;
+    final canvasHeight = (24 * _hourRowHeight) + _bottomPadding;
 
-    return Scrollbar(
-      thumbVisibility: true,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          width: canvasWidth,
-          child: SingleChildScrollView(
-            child: SizedBox(
-              height: canvasHeight,
-              child: Stack(
-                children: [
-                  _buildHourGrid(context, canvasWidth: canvasWidth),
-                  ...layouts.map((item) => _buildPositionedEvent(context, item)),
-                ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewportHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : MediaQuery.of(context).size.height;
+
+        return SizedBox(
+          height: viewportHeight,
+          child: Scrollbar(
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              child: SizedBox(
+                height: canvasHeight,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: _timeLabelWidth,
+                      child: _DayTimeLabelsColumn(
+                        hourRowHeight: _hourRowHeight,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: contentWidth,
+                            height: canvasHeight,
+                            child: Stack(
+                              children: [
+                                _buildHourGridContent(context),
+                                ...layouts.map(
+                                  (item) => _buildPositionedEventContent(context, item),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHourGrid(BuildContext context, {required double canvasWidth}) {
-    final textStyle = Theme.of(context).textTheme.bodySmall;
+  // _buildHourGrid removed — day view uses _buildHourGridContent and a separate time labels column.
 
+  Widget _buildHourGridContent(BuildContext context) {
     return Column(
       children: List.generate(24, (hour) {
-        final label = '${hour.toString().padLeft(2, '0')}:00';
-
         return SizedBox(
           height: _hourRowHeight,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: _timeLabelWidth,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 1,right: 5),
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.right,
-                    style: textStyle,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Colors.grey.shade300,
-                ),
-              ),
-            ],
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Divider(
+              height: 0,
+              thickness: 1,
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
         );
       }),
@@ -121,15 +137,20 @@ class _DayTimeline extends StatelessWidget {
     final top = (item.startMinute / 60) * _hourRowHeight;
     final rawHeight = ((item.endMinute - item.startMinute) / 60) * _hourRowHeight;
     final height = math.max(rawHeight, _minEventHeight);
-    final left = _timeLabelWidth + (item.laneIndex * (_laneWidth + _laneGap)) + 10;
+    final left = (item.laneIndex * (_laneWidth + _laneGap)) + 10;
 
     return Positioned(
       top: top,
       left: left,
       width: _laneWidth,
       height: height,
-      child: _DayEventTile(event: item.event,provider:provider),
+      child: _DayEventTile(event: item.event, provider: provider),
     );
+  }
+
+  Widget _buildPositionedEventContent(BuildContext context, _LayoutEvent item) {
+    // Same as _buildPositionedEvent but for new layout
+    return _buildPositionedEvent(context, item);
   }
 
   List<_LayoutEvent> _buildLayoutEvents({
@@ -218,9 +239,15 @@ class _DayEventTile extends StatelessWidget {
     final isTodo = event.contentType == EventContentType.todo;
 
     // Color coding based on event type
-    final bgColor = isEdu
-        ? Colors.deepPurple.shade50
-        : isTodo ? Colors.orange.shade50 : Colors.blue.shade50;
+    final accent = isEdu
+        ? AppColors.education
+        : isTodo
+            ? AppColors.todo
+            : AppColors.ordinary;
+    final bgColor = Color.alphaBlend(
+      accent.withAlpha((0.22 * 255).round()),
+      Theme.of(context).colorScheme.surface,
+    );
 
     return GestureDetector(
       onTap: () {
@@ -263,27 +290,27 @@ class _DayEventTile extends StatelessWidget {
                     ),
                     if (!isVeryCompact && constraints.maxHeight > 24) ...[
                       const SizedBox(height: 2),
-                      Text(
-                        '$start - $end',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: isCompact ? 10 : 11,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
+                     Text(
+                       '$start - $end',
+                       maxLines: 1,
+                       overflow: TextOverflow.ellipsis,
+                       style: TextStyle(
+                         fontSize: isCompact ? 10 : 11,
+                         color: Theme.of(context).colorScheme.onSurface.withAlpha((0.7 * 255).round()),
+                       ),
+                     ),
                     ],
                     if (!isCompact && constraints.maxHeight > 40) ...[
                       const SizedBox(height: 1),
-                      Text(
-                        event.scheduleAndContentText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
+                       Text(
+                         event.scheduleAndContentText,
+                         maxLines: 1,
+                         overflow: TextOverflow.ellipsis,
+                         style: TextStyle(
+                           fontSize: 9,
+                           color: Theme.of(context).colorScheme.onSurface.withAlpha((0.6 * 255).round()),
+                         ),
+                       ),
                     ],
 
                     // Show Education specifics if space allows
@@ -298,10 +325,10 @@ class _DayEventTile extends StatelessWidget {
                                   'Prof: ${event.educationDetails!.professor}\n'
                                   'Type: ${event.educationSubtype?.name.toUpperCase() ?? 'N/A'}',
                               style: TextStyle(
-                                fontSize: 9,
-                                color: Colors.grey.shade800,
-                                height: 1.2,
-                              ),
+                                 fontSize: 9,
+                                  color: Theme.of(context).colorScheme.onSurface.withAlpha((0.8 * 255).round()),
+                                 height: 1.2,
+                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -350,5 +377,33 @@ class _LayoutEvent {
     required this.endMinute,
     required this.laneIndex,
   });
+}
+
+// Simple time labels column used by DayView when the timeline is separated
+class _DayTimeLabelsColumn extends StatelessWidget {
+  final double hourRowHeight;
+
+  const _DayTimeLabelsColumn({required this.hourRowHeight});
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodySmall;
+
+    return Column(
+      children: List.generate(24, (hour) {
+        final label = '${hour.toString().padLeft(2, '0')}:00';
+        return SizedBox(
+          height: hourRowHeight,
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 6, top: 2),
+              child: Text(label, style: textStyle),
+            ),
+          ),
+        );
+      }),
+    );
+  }
 }
 

@@ -1,4 +1,5 @@
 import 'package:chrono_pilot/domain/models/event_location.dart';
+import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -223,7 +224,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         height: 48,
                         child: const Icon(
                           Icons.location_pin,
-                          color: Colors.red,
+                          color: AppColors.primary,
                           size: 48,
                         ),
                       ),

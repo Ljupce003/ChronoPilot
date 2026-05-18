@@ -1,6 +1,7 @@
 
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -146,10 +147,10 @@ class _MonthViewState extends State<MonthView> {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey.shade300,
+            color: Theme.of(context).colorScheme.outline,
           ),
         ),
       ),
@@ -160,8 +161,9 @@ class _MonthViewState extends State<MonthView> {
             child: Center(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -249,8 +251,8 @@ class _MonthDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = isCurrentMonth
-        ? Colors.black87
-        : Colors.grey.shade400;
+        ? Theme.of(context).colorScheme.onSurface
+        : Theme.of(context).colorScheme.onSurface.withAlpha((0.4 * 255).round());
 
     final hasEvents = events.isNotEmpty;
 
@@ -263,19 +265,19 @@ class _MonthDayCell extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: isAnimating
-                ? Colors.blue.shade100
-                : isSelected
-                ? Colors.blue.shade50
-                : Colors.white,
+            decoration: BoxDecoration(
+              color: isAnimating
+                  ? AppColors.primary.withAlpha((0.2 * 255).round())
+                  : isSelected
+                  ? AppColors.primary.withAlpha((0.1 * 255).round())
+                  : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isAnimating
-                  ? Colors.blueAccent
+                  ? AppColors.primary
                   : isSelected
-                  ? Colors.blue
-                  : Colors.grey.shade300,
+                  ? AppColors.primary
+                  : Theme.of(context).colorScheme.outline,
               width: isAnimating
                   ? 3
                   : (isSelected ? 1.5 : 1),
@@ -283,7 +285,7 @@ class _MonthDayCell extends StatelessWidget {
             boxShadow: isAnimating
                 ? [
               BoxShadow(
-                color: Colors.blue.withAlpha(64),
+                color: AppColors.primary.withAlpha(64),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -323,8 +325,8 @@ class _MonthDayCell extends StatelessWidget {
                       child: _MonthEventMarkers(
                         count: events.length,
                         color: isCurrentMonth
-                            ? Colors.blue
-                            : Colors.grey.shade400,
+                            ? AppColors.primary
+                            : Theme.of(context).colorScheme.onSurface.withAlpha((0.4 * 255).round()),
                         compact:
                         constraints.maxHeight < 40,
                       ),
