@@ -6,6 +6,7 @@ import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/presentation/widgets/image_input_section.dart';
 import 'package:chrono_pilot/presentation/widgets/location_input_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +39,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   EventContentType _contentType = EventContentType.ordinary;
   EducationSubtype _educationSubtype = EducationSubtype.lecture;
   EventLocation? _location;
+  String? _imagePath;
 
   // Recurring state
   final List<int> _selectedDays = [];
@@ -210,6 +212,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       educationDetails: educationDetails,
       educationSubtype: _contentType == EventContentType.education ? _educationSubtype : null,
       location: _location,
+      imagePath: _imagePath,
     );
 
     await provider.createEvent(request);
@@ -375,6 +378,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               LocationInputSection(
                 location: _location,
                 onChanged: (value) => setState(() => _location = value),
+              ),
+
+              const SizedBox(height: 12),
+              ImageInputSection(
+                imagePath: _imagePath,
+                onChanged: (value) => setState(() => _imagePath = value),
               ),
 
               const SizedBox(height: 24),

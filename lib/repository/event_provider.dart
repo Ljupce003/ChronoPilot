@@ -282,6 +282,143 @@ class EventProvider extends ChangeNotifier {
     return await repository.getEventById(eventId);
   }
 
+  Future<List<EventModel>> getAllStoredEvents() async {
+    return await repository.getAllEvents();
+  }
+
+  Future<EventViewModel?> getEventViewModelByIdFromStorage(String eventId) async {
+    final cached = getEventViewModelById(eventId);
+    if (cached != null) {
+      return cached;
+    }
+
+    try {
+      final event = await repository.getEventById(eventId);
+      return _mapStoredEventToViewModel(event);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  EventViewModel? _mapStoredEventToViewModel(EventModel event) {
+    if (event.scheduleType == EventScheduleType.recurring &&
+        event.recurringRule != null) {
+      final startTime = _parseHourMinute(event.recurringRule!.startTime);
+      final start = DateTime(
+        event.recurringRule!.startDate.year,
+        event.recurringRule!.startDate.month,
+        event.recurringRule!.startDate.day,
+        startTime.$1,
+        startTime.$2,
+      );
+
+      final end = _resolveStoredRecurringEnd(event, start);
+
+      return EventViewModel(
+        id: event.id,
+        userId: event.userId,
+        title: event.title,
+        description: event.description,
+        startDateTime: start,
+        endDateTime: end,
+        scheduleType: event.scheduleType,
+        contentType: event.contentType,
+        location: event.location,
+        imagePath: event.imagePath,
+        isCompleted: event.isCompleted,
+        deadline: event.deadline,
+        educationDetails: event.educationDetails,
+        educationSubtype: event.educationSubtype,
+      );
+    }
+
+    switch (event.contentType) {
+      case EventContentType.ordinary:
+      case EventContentType.education:
+        if (event.startDateTime == null || event.endDateTime == null) {
+          return null;
+        }
+
+        return EventViewModel(
+          id: event.id,
+          userId: event.userId,
+          title: event.title,
+          description: event.description,
+          startDateTime: event.startDateTime!,
+          endDateTime: event.endDateTime!,
+          scheduleType: event.scheduleType,
+          contentType: event.contentType,
+          location: event.location,
+          imagePath: event.imagePath,
+          isCompleted: event.contentType == EventContentType.todo
+              ? event.isCompleted
+              : null,
+          deadline: event.deadline,
+          educationDetails: event.educationDetails,
+          educationSubtype: event.educationSubtype,
+        );
+      case EventContentType.todo:
+        if (event.deadline == null) {
+          return null;
+        }
+
+        final start = event.deadline!;
+        final end = start.add(const Duration(minutes: 30));
+
+        return EventViewModel(
+          id: event.id,
+          userId: event.userId,
+          title: event.title,
+          description: event.description,
+          startDateTime: start,
+          endDateTime: end,
+          scheduleType: event.scheduleType,
+          contentType: event.contentType,
+          location: event.location,
+          imagePath: event.imagePath,
+          isCompleted: event.isCompleted,
+          deadline: event.deadline,
+          educationDetails: event.educationDetails,
+          educationSubtype: event.educationSubtype,
+        );
+    }
+  }
+
+  DateTime _resolveStoredRecurringEnd(EventModel event, DateTime start) {
+    if (event.endDateTime != null && event.endDateTime!.isAfter(start)) {
+      return event.endDateTime!;
+    }
+
+    final rule = event.recurringRule;
+    if (rule?.endTime != null) {
+      final endTime = _parseHourMinute(rule!.endTime!);
+      final end = DateTime(
+        start.year,
+        start.month,
+        start.day,
+        endTime.$1,
+        endTime.$2,
+      );
+
+      if (end.isAfter(start)) {
+        return end;
+      }
+    }
+
+    return start.add(const Duration(hours: 1));
+  }
+
+  (int, int) _parseHourMinute(String value) {
+    final parts = value.split(':');
+    if (parts.length != 2) {
+      return (0, 0);
+    }
+
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
+    return (hour.clamp(0, 23), minute.clamp(0, 59));
+  }
+
   List<EventViewModel> getEventsForDay(DateTime day) {
     final dayStart = DateTime(day.year, day.month, day.day);
     final dayEnd = dayStart.add(const Duration(days: 1));

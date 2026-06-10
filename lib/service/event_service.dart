@@ -51,6 +51,7 @@ class EventService {
           educationSubtype: origCreate.educationSubtype,
           recurringRule: null,
           location: origCreate.location,
+          imagePath: origCreate.imagePath,
         );
 
         final replacementEvent = await createEvent(replacementCreate);
@@ -83,6 +84,7 @@ class EventService {
       startDateTime: request.start,
       endDateTime: request.end,
       location: request.location,
+      imagePath: request.imagePath,
       scheduleType: request.scheduleType,
       contentType: request.contentType,
       isCompleted: false,
@@ -102,7 +104,7 @@ class EventService {
       startDateTime: request.start ?? oldEvent.startDateTime,
       endDateTime: request.end ?? oldEvent.endDateTime,
       location: request.location ?? oldEvent.location,
-      imagePath: oldEvent.imagePath,
+      imagePath: request.imagePath ?? oldEvent.imagePath,
       scheduleType: request.scheduleType,
       contentType: request.contentType,
       isCompleted: oldEvent.isCompleted,

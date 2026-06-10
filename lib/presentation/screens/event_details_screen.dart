@@ -7,6 +7,7 @@ import 'package:chrono_pilot/presentation/widgets/event_location_map_card.dart';
 import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 
 class EventDetailsScreen extends StatelessWidget {
   final String eventId;
@@ -149,16 +150,34 @@ class EventDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cachedEvent = context.watch<EventProvider>().getEventViewModelById(eventId);
 
-    // This will rebuild if the events list in the provider changes
-    final event = context.watch<EventProvider>().getEventViewModelById(eventId);
-
-    if (event == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+    if (cachedEvent != null) {
+      return _buildDetailsScaffold(context, cachedEvent);
     }
 
+    return FutureBuilder<EventViewModel?>(
+      future: context.read<EventProvider>().getEventViewModelByIdFromStorage(eventId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final event = snapshot.data;
+        if (event == null) {
+          return const Scaffold(
+            body: Center(child: Text('Event not found')),
+          );
+        }
+
+        return _buildDetailsScaffold(context, event);
+      },
+    );
+  }
+
+  Scaffold _buildDetailsScaffold(BuildContext context, EventViewModel event) {
     final isTodo = event.contentType == EventContentType.todo;
     final isEducation = event.contentType == EventContentType.education;
 
@@ -174,7 +193,7 @@ class EventDetailsScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => _confirmDelete(context,event),
+            onPressed: () => _confirmDelete(context, event),
           ),
         ],
       ),
@@ -186,7 +205,10 @@ class EventDetailsScreen extends StatelessWidget {
             // Standard Fields (Always visible)
             Text(
               event.title,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
 
@@ -196,7 +218,10 @@ class EventDetailsScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   '${event.startDateTime.day}/${event.startDateTime.month}/${event.startDateTime.year} • ${_formatTime(event.startDateTime)} - ${_formatTime(event.endDateTime)}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey[700]),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(color: Colors.grey[700]),
                 ),
               ],
             ),
@@ -208,8 +233,17 @@ class EventDetailsScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
+            if (event.imagePath != null) ...[
+              _buildSectionHeader('Image'),
+              _buildImageCard(context, event.imagePath!),
+              const SizedBox(height: 24),
+            ],
+
             if (event.description != null && event.description!.isNotEmpty) ...[
-              const Text('Description', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                'Description',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
               Text(event.description!, style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 24),
@@ -222,7 +256,9 @@ class EventDetailsScreen extends StatelessWidget {
                 elevation: 1,
                 child: ListTile(
                   leading: const Icon(Icons.flag, color: Colors.redAccent),
-                  title: Text('${event.deadline!.day}/${event.deadline!.month}/${event.deadline!.year} ${_formatTime(event.deadline!)}'),
+                  title: Text(
+                    '${event.deadline!.day}/${event.deadline!.month}/${event.deadline!.year} ${_formatTime(event.deadline!)}',
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -238,16 +274,21 @@ class EventDetailsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDetailRow(Icons.class_, 'Course', event.educationDetails!.courseName),
+                      _buildDetailRow(
+                          Icons.class_, 'Course', event.educationDetails!.courseName),
                       const Divider(),
-                      _buildDetailRow(Icons.person, 'Professor', event.educationDetails!.professor),
+                      _buildDetailRow(Icons.person, 'Professor',
+                          event.educationDetails!.professor),
                       const Divider(),
-                      _buildDetailRow(Icons.room, 'Room', event.educationDetails!.room),
+                      _buildDetailRow(
+                          Icons.room, 'Room', event.educationDetails!.room),
                       const Divider(),
-                      _buildDetailRow(Icons.category, 'Subtype', event.educationSubtype?.name.toUpperCase() ?? 'N/A'),
+                      _buildDetailRow(Icons.category, 'Subtype',
+                          event.educationSubtype?.name.toUpperCase() ?? 'N/A'),
                       if (event.educationDetails!.studyProgramCode.isNotEmpty) ...[
                         const Divider(),
-                        _buildDetailRow(Icons.code, 'Program', event.educationDetails!.studyProgramCode),
+                        _buildDetailRow(Icons.code, 'Program',
+                            event.educationDetails!.studyProgramCode),
                       ]
                     ],
                   ),
@@ -292,5 +333,35 @@ class EventDetailsScreen extends StatelessWidget {
 
   String _formatTime(DateTime time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildImageCard(BuildContext context, String imagePath) {
+    final file = File(imagePath);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        width: double.infinity,
+        child: file.existsSync()
+            ? Image.file(
+                file,
+                height: 220,
+                fit: BoxFit.cover,
+              )
+            : Container(
+                height: 220,
+                alignment: Alignment.center,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.broken_image_outlined, size: 48),
+                    SizedBox(height: 8),
+                    Text('Image not available'),
+                  ],
+                ),
+              ),
+      ),
+    );
   }
 }

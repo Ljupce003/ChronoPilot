@@ -7,7 +7,6 @@ import 'package:chrono_pilot/utils/event_classification.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
-import 'package:chrono_pilot/presentation/screens/event_details_screen.dart';
 
 class DayView extends StatelessWidget {
   final DateTime selected;
@@ -284,11 +283,10 @@ class _DayEventTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
+        Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => EventDetailsScreen(eventId: event.id),
-          ),
+          '/event-details',
+          arguments: event.id,
         );
       },
       child: Card(

@@ -8,6 +8,7 @@ import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import 'package:chrono_pilot/presentation/models/edit_event_request.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
+import 'package:chrono_pilot/presentation/widgets/image_input_section.dart';
 import 'package:chrono_pilot/presentation/widgets/location_input_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late EventContentType _contentType;
   late EducationSubtype _educationSubtype;
   EventLocation? _location;
+  String? _imagePath;
 
   // Recurring state
   List<int> _selectedDays = [];
@@ -278,6 +280,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           ? _educationSubtype
           : null,
       location: _location,
+      imagePath: _imagePath,
       originalOccurrenceDate: originalOccurrenceTime,
       updateWholeSeries: updateWholeSeries ?? false
     );
@@ -506,6 +509,12 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 onChanged: (value) => setState(() => _location = value),
               ),
 
+              const SizedBox(height: 12),
+              ImageInputSection(
+                imagePath: _imagePath,
+                onChanged: (value) => setState(() => _imagePath = value),
+              ),
+
               const SizedBox(height: 24),
               ElevatedButton(onPressed: _saveFromCurrentMode, child: const Text('Save Event')),
               const SizedBox(height: 24),
@@ -537,6 +546,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       }
       _deadline = loadedEvent.deadline;
       _location = loadedEvent.location;
+      _imagePath = loadedEvent.imagePath;
 
       _contentType = loadedEvent.contentType;
       _scheduleType = loadedEvent.scheduleType;

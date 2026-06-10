@@ -24,6 +24,7 @@ class EditEventRequest {
   final EducationSubtype? educationSubtype;
   final RecurringRule? recurringRule;
   final EventLocation? location;
+  final String? imagePath;
 
   // If editing an occurrence, we need to know WHICH one it was originally
   final DateTime? originalOccurrenceDate;
@@ -42,6 +43,7 @@ class EditEventRequest {
     this.educationSubtype,
     this.recurringRule,
     this.location,
+    this.imagePath,
     this.originalOccurrenceDate,
     this.updateWholeSeries = false,
   });
@@ -60,6 +62,7 @@ class EditEventRequest {
         educationSubtype: educationSubtype,
         recurringRule: recurringRule,
         location: location,
+        imagePath: imagePath,
     );
 
   }

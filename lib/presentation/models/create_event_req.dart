@@ -22,6 +22,7 @@ class CreateEventRequest {
   final EducationSubtype? educationSubtype;
   final RecurringRule? recurringRule;
   final EventLocation? location;
+  final String? imagePath;
 
   CreateEventRequest({
     required this.userId,
@@ -36,5 +37,6 @@ class CreateEventRequest {
     this.educationSubtype,
     this.recurringRule,
     this.location,
+    this.imagePath,
   });
 }

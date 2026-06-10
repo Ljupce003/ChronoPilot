@@ -1,5 +1,6 @@
 import 'package:chrono_pilot/presentation/screens/calendar_screen.dart';
 import 'package:chrono_pilot/presentation/screens/create_event_screen.dart';
+import 'package:chrono_pilot/presentation/screens/event_details_screen.dart';
 import 'package:chrono_pilot/presentation/screens/event_list_screen.dart';
 import 'package:chrono_pilot/presentation/screens/menu_page.dart';
 import 'package:chrono_pilot/repository/event_overrides_repository.dart';
@@ -47,6 +48,22 @@ class MyApp extends StatelessWidget {
               '/menu': (context) => const MenuPage(),
               '/events': (context) => const EventListScreen(),
               '/calendar': (context) => const CalendarScreen(),
+              '/event-details': (context) {
+                final args = ModalRoute.of(context)?.settings.arguments;
+                final eventId = args is String
+                    ? args
+                    : args is Map<String, dynamic> && args['eventId'] is String
+                        ? args['eventId'] as String
+                        : null;
+
+                if (eventId == null) {
+                  return const Scaffold(
+                    body: Center(child: Text('Missing event id')),
+                  );
+                }
+
+                return EventDetailsScreen(eventId: eventId);
+              },
               '/profile':
                   (context) => const Scaffold(body: Center(child: Text('Profile'))),
               '/create-event': (context) {
