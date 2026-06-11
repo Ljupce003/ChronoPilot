@@ -195,6 +195,8 @@ class _EventListScreenState extends State<EventListScreen> {
       EventContentType.ordinary => 'Ordinary',
       EventContentType.todo => 'Todo',
       EventContentType.education => 'Education',
+      EventContentType.holiday => 'Holiday',
+      // ignore: unreachable_switch_default
     };
   }
 

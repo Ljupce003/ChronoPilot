@@ -1,4 +1,5 @@
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -135,6 +136,11 @@ class _MonthBox extends StatelessWidget {
       days.add(d);
     }
 
+    final hasHoliday = eventsByDay.values.any(
+      (events) => events.any((event) => event.contentType == EventContentType.holiday),
+    );
+    final boxAccent = hasHoliday ? AppColors.holiday : AppColors.primary;
+
     return Material(
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(12),
@@ -151,7 +157,7 @@ class _MonthBox extends StatelessWidget {
                    _monthName(month),
                    style: TextStyle(
                      fontWeight: FontWeight.w600,
-                     color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurface,
+                     color: isSelected ? boxAccent : Theme.of(context).colorScheme.onSurface,
                      fontSize: 12,
                    ),
                  ),
@@ -208,8 +214,8 @@ class _MonthBox extends StatelessWidget {
                                      ? Container(
                                          width: 3,
                                          height: 3,
-                                         decoration: const BoxDecoration(
-                                           color: AppColors.primary,
+                                          decoration: BoxDecoration(
+                                           color: boxAccent,
                                            shape: BoxShape.circle,
                                          ),
                                        )

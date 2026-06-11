@@ -350,6 +350,7 @@ class EventProvider extends ChangeNotifier {
     switch (event.contentType) {
       case EventContentType.ordinary:
       case EventContentType.education:
+      case EventContentType.holiday:
         if (event.startDateTime == null || event.endDateTime == null) {
           return null;
         }
@@ -470,6 +471,12 @@ class EventProvider extends ChangeNotifier {
       rangeEnd: _rangeEnd,
     );
   }
+
+  Future<void> refreshCurrentRange() async {
+    await _reloadCurrentRange();
+  }
+
+  EventService get eventServiceRef => eventService;
 
   List<EventViewModel> getEventsForYear(int year) {
     final yearStart = DateTime(year, 1, 1);

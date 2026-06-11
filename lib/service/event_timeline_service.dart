@@ -157,6 +157,7 @@ class EventTimelineService {
     switch (event.contentType) {
       case EventContentType.ordinary:
       case EventContentType.education:
+      case EventContentType.holiday:
         if (event.startDateTime == null || event.endDateTime == null) {
           return null;
         }

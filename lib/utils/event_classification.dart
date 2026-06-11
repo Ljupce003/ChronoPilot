@@ -17,6 +17,7 @@ String contentTypeLabel(EventContentType contentType) {
     EventContentType.ordinary => 'Event',
     EventContentType.todo => 'Task',
     EventContentType.education => 'Class',
+    EventContentType.holiday => 'Holiday',
   };
 }
 
@@ -28,9 +29,11 @@ String scheduleAndContentLabel({
     (EventScheduleType.oneTime, EventContentType.ordinary) => 'One-time event',
     (EventScheduleType.oneTime, EventContentType.todo) => 'Task',
     (EventScheduleType.oneTime, EventContentType.education) => 'Class session',
+    (EventScheduleType.oneTime, EventContentType.holiday) => 'Holiday',
     (EventScheduleType.recurring, EventContentType.ordinary) => 'Recurring event',
     (EventScheduleType.recurring, EventContentType.todo) => 'Recurring task',
     (EventScheduleType.recurring, EventContentType.education) => 'Recurring class',
+    (EventScheduleType.recurring, EventContentType.holiday) => 'Recurring holiday',
   };
 }
 

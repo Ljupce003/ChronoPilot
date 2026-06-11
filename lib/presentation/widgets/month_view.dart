@@ -1,4 +1,5 @@
 
+import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:chrono_pilot/utils/app_theme.dart';
@@ -255,6 +256,12 @@ class _MonthDayCell extends StatelessWidget {
         : Theme.of(context).colorScheme.onSurface.withAlpha((0.4 * 255).round());
 
     final hasEvents = events.isNotEmpty;
+    final hasHoliday = events.any((event) => event.contentType == EventContentType.holiday);
+    final markerColor = hasHoliday
+        ? AppColors.holiday
+        : (isCurrentMonth
+            ? AppColors.primary
+            : Theme.of(context).colorScheme.onSurface.withAlpha((0.4 * 255).round()));
 
     return Material(
       color: Colors.transparent,
@@ -266,15 +273,15 @@ class _MonthDayCell extends StatelessWidget {
           curve: Curves.easeOut,
           padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isAnimating
-                  ? AppColors.primary.withAlpha((0.2 * 255).round())
+                          color: isAnimating
+                  ? AppColors.holiday.withAlpha((0.18 * 255).round())
                   : isSelected
                   ? AppColors.primary.withAlpha((0.1 * 255).round())
                   : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isAnimating
-                  ? AppColors.primary
+                  color: isAnimating
+                  ? AppColors.holiday
                   : isSelected
                   ? AppColors.primary
                   : Theme.of(context).colorScheme.outline,
@@ -285,7 +292,7 @@ class _MonthDayCell extends StatelessWidget {
             boxShadow: isAnimating
                 ? [
               BoxShadow(
-                color: AppColors.primary.withAlpha(64),
+                color: AppColors.holiday.withAlpha(64),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -322,11 +329,9 @@ class _MonthDayCell extends StatelessWidget {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: _MonthEventMarkers(
-                        count: events.length,
-                        color: isCurrentMonth
-                            ? AppColors.primary
-                            : Theme.of(context).colorScheme.onSurface.withAlpha((0.4 * 255).round()),
+                        child: _MonthEventMarkers(
+                          count: events.length,
+                          color: markerColor,
                         compact:
                         constraints.maxHeight < 40,
                       ),

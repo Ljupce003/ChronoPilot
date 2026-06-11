@@ -392,6 +392,8 @@ class _WeekEventTile extends StatelessWidget {
         ? getColorForCard(event.educationSubtype!)
         : isTodo
         ? AppColors.todo
+        : event.contentType == EventContentType.holiday
+        ? AppColors.holiday
         : AppColors.ordinary;
     final bgColor = Color.alphaBlend(
       accent.withAlpha((0.22 * 255).round()),

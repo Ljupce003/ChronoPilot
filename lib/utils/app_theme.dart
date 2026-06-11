@@ -31,6 +31,7 @@ class AppColors {
   // Semantic Event Colors
   static const Color ordinary = Color(0xFF64748B);
   static const Color todo = Color(0xFFF59E0B);
+  static const Color holiday = Color(0xFF14B8A6);
   // Semantic Event Colors for Education
   static const Color educationLecture = Color(0xFF4A68E8);
   static const Color educationAuditory = Color(0xFF5EA55F);

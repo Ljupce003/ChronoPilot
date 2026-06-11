@@ -342,7 +342,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               const SizedBox(height: 12),
               DropdownButtonFormField<EventContentType>(
                 initialValue: _contentType,
-                items: EventContentType.values.map((e) => DropdownMenuItem(value: e, child: Text(e.name))).toList(),
+                items: EventContentType.values
+                    .where((e) => e != EventContentType.holiday)
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                    .toList(),
                 onChanged: (v) => setState(() => _contentType = v!),
                 decoration: const InputDecoration(labelText: 'Content Type'),
               ),

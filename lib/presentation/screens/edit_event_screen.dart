@@ -446,6 +446,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               DropdownButtonFormField<EventContentType>(
                 initialValue: _contentType,
                 items: EventContentType.values
+                    .where((e) => e != EventContentType.holiday)
                     .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                     .toList(),
                 onChanged: (v) => setState(() => _contentType = v!),

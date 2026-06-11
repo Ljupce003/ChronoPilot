@@ -180,17 +180,19 @@ class EventDetailsScreen extends StatelessWidget {
   Scaffold _buildDetailsScaffold(BuildContext context, EventViewModel event) {
     final isTodo = event.contentType == EventContentType.todo;
     final isEducation = event.contentType == EventContentType.education;
+    final isHoliday = event.contentType == EventContentType.holiday;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Event Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              _openEditFlow(context, event);
-            },
-          ),
+          if (!isHoliday)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                _openEditFlow(context, event);
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () => _confirmDelete(context, event),
