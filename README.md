@@ -1,6 +1,4 @@
-Here is an enriched, production-grade, and academically thorough `README.md` designed to maximize your evaluation score. It expands explicitly on the underlying architecture, mathematical layouts, and engine state flows, mapping each technical component directly to your grading rubrics.
 
----
 
 # ChronoPilot
 
