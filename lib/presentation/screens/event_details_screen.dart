@@ -9,23 +9,36 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 
+/// Event details screen
+///
+/// Shows full information about a single event (title, time, location, image,
+/// description and type-specific sections). Provides edit/delete flows and
+/// special handling for recurring events (modify series vs. instance override).
+///
+/// Public widget: [EventDetailsScreen]
 class EventDetailsScreen extends StatelessWidget {
   final String eventId;
 
   const EventDetailsScreen({super.key, required this.eventId});
 
-  void _openEditFlow(BuildContext context, EventViewModel event) {
+  Future<void> _openEditFlow(BuildContext context, EventViewModel event) async {
     final isRecurringOccurrence =
         event.scheduleType == EventScheduleType.recurring &&
         event.recurringEventId != null;
 
     if (!isRecurringOccurrence) {
-      Navigator.push(
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => EditEventScreen(event: event),
         ),
       );
+
+      if (result is String) {
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, '/event-details', arguments: result);
+        }
+      }
       return;
     }
 
@@ -42,32 +55,44 @@ class EventDetailsScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditEventScreen(event: event),
-                  ),
-                );
-              },
-              child: const Text('Modify Recurring Event'),
-            ),
-            TextButton(
-               style: TextButton.styleFrom(foregroundColor: AppColors.error),
-               onPressed: () {
-                Navigator.pop(dialogContext);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        EditEventScreen(event: event, forceSingleOverride: true),
-                  ),
-                );
-              },
-              child: const Text('Make Override'),
-            ),
+             TextButton(
+               onPressed: () async {
+                 Navigator.pop(dialogContext);
+                 final result = await Navigator.push(
+                   context,
+                   MaterialPageRoute(
+                     builder: (context) => EditEventScreen(event: event),
+                   ),
+                 );
+
+                 if (result is String) {
+                   if (context.mounted) {
+                     Navigator.pushReplacementNamed(context, '/event-details', arguments: result);
+                   }
+                 }
+               },
+               child: const Text('Modify Recurring Event'),
+             ),
+             TextButton(
+                style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                onPressed: () async {
+                 Navigator.pop(dialogContext);
+                 final result = await Navigator.push(
+                   context,
+                   MaterialPageRoute(
+                     builder: (context) =>
+                         EditEventScreen(event: event, forceSingleOverride: true),
+                   ),
+                 );
+
+                 if (result is String) {
+                   if (context.mounted) {
+                     Navigator.pushReplacementNamed(context, '/event-details', arguments: result);
+                   }
+                 }
+               },
+               child: const Text('Make Override'),
+             ),
           ],
         );
       },

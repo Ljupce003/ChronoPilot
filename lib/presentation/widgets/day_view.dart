@@ -8,6 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 
+/// Day view widget
+///
+/// Renders a scrollable day timeline showing events laid out by time and
+/// collision lanes. Intended for the calendar day mode. Consumes a list of
+/// [EventViewModel] and uses [EventProvider] for interactions.
 class DayView extends StatelessWidget {
   final DateTime selected;
 

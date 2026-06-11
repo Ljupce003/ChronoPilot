@@ -5,6 +5,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+/// Location picker screen
+///
+/// Presents an interactive map to pick an [EventLocation]. Supports using the
+/// device's current GPS location and returns an [EventLocation] via
+/// `Navigator.pop(context, EventLocation)` when saved.
+///
+/// Public widget: [LocationPickerScreen]
 class LocationPickerScreen extends StatefulWidget {
   final EventLocation? initialLocation;
   final bool autoUseCurrentLocation;

@@ -6,13 +6,20 @@ import 'package:chrono_pilot/repository/events_repository.dart';
 import 'package:chrono_pilot/service/event_override_service.dart';
 import 'package:uuid/uuid.dart';
 
+/// Handles event creation, update, and deletion workflows.
+///
+/// This service converts form requests into stored `EventModel` rows and also
+/// manages the special flow for modifying a single occurrence of a recurring
+/// event by creating a replacement event plus an override record.
 class EventService {
   final EventsRepository repository;
   final EventOverrideService eventOverrideService;
   final _uuid = const Uuid();
 
+  /// Creates a service that writes to the given repository and override store.
   EventService(this.repository, this.eventOverrideService);
 
+  /// Creates and persists a new event from a form request.
   Future<EventModel> createEvent(CreateEventRequest request) async {
     final id = _uuid.v4();
 
@@ -22,16 +29,23 @@ class EventService {
     return event;
   }
 
-  Future<void> updateEvent(String id, EditEventRequest request) async {
+  /// Updates an existing event or creates a replacement event for an occurrence.
+  /// Updates an existing event or creates a replacement event for an occurrence.
+  ///
+  /// Returns the replacement event id when a modified override is created,
+  /// otherwise returns null.
+  Future<String?> updateEvent(String id, EditEventRequest request) async {
     final existing = await repository.getEventById(id);
 
     final updatedEvent = _merge(existing, request.toCreateReq());
 
     if(request.originalOccurrenceDate == null){
       await repository.updateEvent(updatedEvent);
+      return null;
     }else{
       if(request.updateWholeSeries){
         await repository.updateEvent(updatedEvent);
+        return null;
       }
       else{
         // Create a replacement single event for this occurrence. Ensure the
@@ -66,15 +80,18 @@ class EventService {
           newStartDateTime: replacementEvent.startDateTime,
           newEndDateTime: replacementEvent.endDateTime,
         );
+        return replacementEvent.id;
       }
 
     }
   }
 
+  /// Deletes a stored event row by id.
   Future<void> deleteEvent(String id) async {
     await repository.deleteEvent(id);
   }
 
+  /// Maps a create request into the stored event model shape.
   EventModel _mapToEventModel(String id, CreateEventRequest request) {
     return EventModel(
       id: id,
@@ -95,6 +112,7 @@ class EventService {
     );
   }
 
+  /// Merges an existing stored event with an update request.
   EventModel _merge(EventModel oldEvent, CreateEventRequest request) {
     return EventModel(
       id: oldEvent.id,

@@ -1,4 +1,3 @@
-
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
@@ -6,6 +5,10 @@ import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Month view widget
+///
+/// Renders a grid of visible days for a given month and displays simple
+/// markers for events. Calls [onDaySelected] when a day is tapped.
 class MonthView extends StatefulWidget {
   final DateTime selected;
   final ValueChanged<DateTime>? onDaySelected;

@@ -7,6 +7,13 @@ import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Event list screen
+///
+/// Provides a paginated/loaded list of stored events. Shows basic metadata
+/// (title, schedule/type/subtype and date/time) and lets the user open the
+/// details screen or create a new event. Backed by [EventProvider].
+///
+/// Public widget: [EventListScreen]
 class EventListScreen extends StatefulWidget {
   const EventListScreen({super.key});
 

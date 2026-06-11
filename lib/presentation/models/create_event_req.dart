@@ -5,6 +5,7 @@ import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 
+/// Input payload used when creating a new event.
 class CreateEventRequest {
   final String userId;
   final String title;
@@ -24,6 +25,7 @@ class CreateEventRequest {
   final EventLocation? location;
   final String? imagePath;
 
+  /// Creates a new event request.
   CreateEventRequest({
     required this.userId,
     required this.title,

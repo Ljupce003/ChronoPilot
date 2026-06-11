@@ -16,6 +16,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Application entry point.
+///
+/// Initializes Firebase before the widget tree is built so authentication and
+/// Google Sign-In are available from the first frame.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -24,10 +28,12 @@ void main() async {
   runApp(const MyApp());
 }
 
+/// Root widget that wires app-wide providers, theming, and routing.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
+  /// Builds the app shell and selects the initial route based on auth state.
   Widget build(BuildContext context) {
     final repository = EventsRepository();
     final overridesRepository = EventOverridesRepository();

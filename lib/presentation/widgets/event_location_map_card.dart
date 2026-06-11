@@ -5,6 +5,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Event location map card
+///
+/// Displays a compact map preview for an [EventLocation] with a tappable
+/// coordinate link that opens the location in Google Maps. Uses
+/// `flutter_map`/OpenStreetMap tiles for the embedded preview.
 class EventLocationMapCard extends StatelessWidget {
   final EventLocation location;
 

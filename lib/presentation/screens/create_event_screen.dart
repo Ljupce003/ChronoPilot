@@ -12,6 +12,13 @@ import 'package:chrono_pilot/presentation/widgets/location_input_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Create event screen
+///
+/// Form for creating new events (one-time, recurring, todo, education). Uses
+/// [EventProvider] to submit a [CreateEventRequest]. Mirrors fields available
+/// in the edit flow and exposes date/time pickers for start/end/deadline.
+///
+/// Public widget: [CreateEventScreen]
 class CreateEventScreen extends StatefulWidget {
   final DateTime? initialStart;
 
@@ -148,6 +155,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final time = TimeOfDay.fromDateTime(_deadline ?? _start);
       setState(() {
         _deadline = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
+      });
+    }
+  }
+
+  Future<void> _pickDeadlineTime() async {
+    final initial = _deadline ?? _start;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (picked != null) {
+      setState(() {
+        _deadline = DateTime(initial.year, initial.month, initial.day, picked.hour, picked.minute);
       });
     }
   }
@@ -353,11 +373,20 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               // EXPANDING FIELD: Todo/Task
               if (_contentType == EventContentType.todo) ...[
                 const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Deadline'),
-                  subtitle: Text(_deadline != null ? '${_deadline!.day}/${_deadline!.month}/${_deadline!.year} ${_deadline!.hour.toString().padLeft(2,'0')}:${_deadline!.minute.toString().padLeft(2,'0')}' : 'Not set'),
-                  onTap: _pickDeadline,
+                Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Deadline'),
+                        subtitle: Text(_deadline != null
+                            ? '${_deadline!.day}/${_deadline!.month}/${_deadline!.year} ${_deadline!.hour.toString().padLeft(2, '0')}:${_deadline!.minute.toString().padLeft(2, '0')}'
+                            : 'Not set'),
+                        onTap: _pickDeadline,
+                      ),
+                    ),
+                    IconButton(onPressed: _pickDeadlineTime, icon: const Icon(Icons.access_time)),
+                  ],
                 ),
               ],
 

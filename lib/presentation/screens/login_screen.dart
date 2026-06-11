@@ -2,6 +2,13 @@ import 'package:chrono_pilot/repository/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Login / Sign-up screen
+///
+/// Provides email/password and Google sign-in flows using [AuthProvider]. The
+/// screen toggles between sign-in and sign-up modes and navigates to the
+/// calendar on success.
+///
+/// Public widget: [LoginScreen]
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

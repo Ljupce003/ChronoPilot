@@ -5,6 +5,14 @@ import 'package:chrono_pilot/repository/events_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Profile screen
+///
+/// Shows authenticated user information and simple statistics about their
+/// events (tasks, classes, recurring). Also provides a sign-out action.
+/// Backed by [AuthProvider] and optionally reads events via
+/// [EventsRepository].
+///
+/// Public widget: [ProfileScreen]
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 

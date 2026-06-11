@@ -1,6 +1,10 @@
 import 'package:chrono_pilot/domain/enums/override_type.dart';
 import 'package:chrono_pilot/domain/models/event_override_model.dart';
 
+/// Safely parses an enum value from a stored string.
+///
+/// The parser tries an exact match first, then a case-insensitive match, and
+/// returns `null` if nothing matches.
 T? enumFromString<T extends Enum>(List<T> values, String? source) {
   if (source == null) return null;
   // Try exact match first (case-sensitive)
@@ -17,6 +21,7 @@ T? enumFromString<T extends Enum>(List<T> values, String? source) {
   }
 }
 
+/// Converts a raw SQLite row into an `EventOverride`.
 EventOverride eventOverrideFromDb(Map<String, dynamic> row) {
   // Use the safe enum parser to avoid throws when DB value has different casing or unexpected value
   final parsedType = enumFromString(OverrideType.values, row['overrideType'] as String?);
@@ -38,6 +43,7 @@ EventOverride eventOverrideFromDb(Map<String, dynamic> row) {
   );
 }
 
+/// Converts an `EventOverride` into a SQLite-friendly map.
 Map<String, dynamic> eventOverrideToDb(EventOverride eventOverride) {
   return {
     'id': eventOverride.id,

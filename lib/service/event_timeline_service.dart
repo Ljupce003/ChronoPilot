@@ -8,15 +8,25 @@ import 'package:chrono_pilot/presentation/models/event_view_model.dart';
 import 'package:chrono_pilot/repository/events_repository.dart';
 import 'package:chrono_pilot/service/event_override_service.dart';
 
+/// Builds presentation-ready event timelines for a requested date range.
+///
+/// This service combines raw stored events, recurring rules, and overrides to
+/// produce the `EventViewModel` list that the calendar screens render.
 class EventTimelineService {
   final EventsRepository eventsRepository;
   final EventOverrideService overrideService;
 
+  /// Creates a timeline service backed by the local events and overrides stores.
   EventTimelineService({
     required this.eventsRepository,
     required this.overrideService,
   });
 
+  /// Builds all visible event view models that intersect the requested range.
+  ///
+  /// The method expands recurring events into concrete occurrences, applies any
+  /// cancelled or modified overrides, filters out replacement rows that belong
+  /// to overrides, and returns the final list sorted by start time.
   Future<List<EventViewModel>> buildViewModelsForRange({
     required DateTime rangeStart,
     required DateTime rangeEnd,

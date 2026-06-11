@@ -15,6 +15,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Edit event screen
+///
+/// Provides a full-featured editor for existing events. Supports editing a
+/// single occurrence or the whole series for recurring events. Produces an
+/// [EditEventRequest] and calls into [EventProvider].
+///
+/// Public widget: [EditEventScreen]
 class EditEventScreen extends StatefulWidget {
   final EventViewModel event;
   final bool forceSingleOverride;
@@ -198,6 +205,19 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
+  Future<void> _pickDeadlineTime() async {
+    final initial = _deadline ?? _start;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (picked != null) {
+      setState(() {
+        _deadline = DateTime(initial.year, initial.month, initial.day, picked.hour, picked.minute);
+      });
+    }
+  }
+
   Future<void> _pickRecurringEndDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -297,7 +317,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     final eventId = _event?.id ?? widget.event.id;
     try {
-      await provider.updateEvent(eventId, request);
+      final replacementId = await provider.updateEvent(eventId, request);
+      if (mounted && closeScreen) {
+        // If we created a replacement event for a modified recurring occurrence,
+        // return the new event id to the caller so they can navigate to it.
+        Navigator.pop(context, replacementId);
+      }
+      return true;
     } catch (e, st) {
       if (mounted) {
         // Show a simple error snackbar/dialog
@@ -311,8 +337,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
       return false;
     }
 
-    if (mounted && closeScreen) Navigator.pop(context);
-    return true;
   }
 
   String _dayName(int weekday) {
@@ -456,15 +480,25 @@ class _EditEventScreenState extends State<EditEventScreen> {
               // EXPANDING FIELD: Todo/Task
               if (_contentType == EventContentType.todo) ...[
                 const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Deadline'),
-                  subtitle: Text(
-                    _deadline != null
-                        ? '${_deadline!.day}/${_deadline!.month}/${_deadline!.year} ${_deadline!.hour.toString().padLeft(2, '0')}:${_deadline!.minute.toString().padLeft(2, '0')}'
-                        : 'Not set',
-                  ),
-                  onTap: _pickDeadline,
+                Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Deadline'),
+                        subtitle: Text(
+                          _deadline != null
+                              ? '${_deadline!.day}/${_deadline!.month}/${_deadline!.year} ${_deadline!.hour.toString().padLeft(2, '0')}:${_deadline!.minute.toString().padLeft(2, '0')}'
+                              : 'Not set',
+                        ),
+                        onTap: _pickDeadline,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _pickDeadlineTime,
+                      icon: const Icon(Icons.access_time),
+                    ),
+                  ],
                 ),
               ],
 

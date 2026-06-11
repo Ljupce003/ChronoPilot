@@ -1,6 +1,10 @@
 import 'package:chrono_pilot/domain/enums/override_type.dart';
 import 'package:chrono_pilot/utils/enum_utils.dart';
 
+/// Stores the override state for one recurring event occurrence.
+///
+/// Overrides can represent cancellations or modifications and may optionally
+/// point to a replacement event row created for the altered occurrence.
 class EventOverride {
   final String id;
   final String userId;
@@ -18,6 +22,7 @@ class EventOverride {
 
   final String? note;
 
+  /// Creates an override record.
   EventOverride({
     required this.id,
     required this.userId,
@@ -30,6 +35,7 @@ class EventOverride {
     this.note,
   });
 
+  /// Creates an override model from a decoded JSON map.
   factory EventOverride.fromJson(Map<String, dynamic> json) {
     return EventOverride(
       id: json['id'],
@@ -49,6 +55,7 @@ class EventOverride {
     );
   }
 
+  /// Serializes the override to a JSON-compatible map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,

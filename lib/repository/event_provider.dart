@@ -14,6 +14,11 @@ import 'package:chrono_pilot/service/event_service.dart';
 import 'package:chrono_pilot/service/event_timeline_service.dart';
 import 'package:flutter/foundation.dart';
 
+/// Coordinates event loading, timeline generation, CRUD, and overrides.
+///
+/// This provider is the main orchestration layer used by the calendar screens:
+/// it seeds demo data, loads the current range, exposes raw event lookups, and
+/// keeps the active user's scope in sync with authentication state.
 class EventProvider extends ChangeNotifier {
   final EventsRepository repository;
   final EventOverridesRepository overridesRepository;
@@ -25,6 +30,7 @@ class EventProvider extends ChangeNotifier {
   String? _currentUserId;
   bool _showAllUsers = false;
 
+  /// Creates the provider with the local event and override repositories.
   EventProvider({required this.repository, required this.overridesRepository}) {
     overrideService = EventOverrideService(overridesRepository);
     eventService = EventService(repository,overrideService);
@@ -36,6 +42,7 @@ class EventProvider extends ChangeNotifier {
     unawaited(_initialize());
   }
 
+  /// Sets the current user scope used by calendar/date-range queries.
   void setCurrentUserId(String? userId, {bool showAllUsers = false}) {
     _currentUserId = userId;
     _showAllUsers = showAllUsers;
@@ -54,6 +61,7 @@ class EventProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
+  /// Loads the initial data and current range once.
   Future<void> _initialize() async {
     if (_initialized) {
       return;
@@ -64,6 +72,7 @@ class EventProvider extends ChangeNotifier {
     await loadEvents();
   }
 
+  /// Seeds sample events only when the database is empty and a user is signed in.
   Future<void> _seedIfNeeded() async {
     final existing = await repository.getAllEvents();
     if (existing.isNotEmpty) {
@@ -152,6 +161,7 @@ class EventProvider extends ChangeNotifier {
     );
   }
 
+  /// Loads calendar view models for the requested date range.
   Future<void> loadEvents({DateTime? rangeStart, DateTime? rangeEnd}) async {
     _isLoading = true;
     notifyListeners();
@@ -182,16 +192,23 @@ class EventProvider extends ChangeNotifier {
     }
   }
 
+  /// Creates an event and reloads the current visible range.
   Future<void> createEvent(CreateEventRequest request) async {
     await eventService.createEvent(request);
     await _reloadCurrentRange();
   }
 
-  Future<void> updateEvent(String id, EditEventRequest request) async {
-    await eventService.updateEvent(id, request);
+  /// Updates an event and reloads the current visible range.
+  ///
+  /// Returns the replacement event id when a modified override was created,
+  /// otherwise returns null.
+  Future<String?> updateEvent(String id, EditEventRequest request) async {
+    final replacementId = await eventService.updateEvent(id, request);
     await _reloadCurrentRange();
+    return replacementId;
   }
 
+  /// Deletes an event while also cleaning up related overrides when needed.
   Future<void> deleteEvent(String id) async {
     // If deleting a recurring event, first remove any overrides and their
     // replacement events to avoid leaving orphan overrides behind.

@@ -2,6 +2,13 @@ import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/presentation/screens/location_picker_screen.dart';
 import 'package:flutter/material.dart';
 
+/// Location input section
+///
+/// Small reusable UI that exposes location selection for event forms. Shows
+/// the currently selected [EventLocation] (if any) and provides quick actions
+/// to use the device location or open the full map picker screen
+/// (`LocationPickerScreen`). The selected value is returned through
+/// [onChanged].
 class LocationInputSection extends StatelessWidget {
   final EventLocation? location;
   final ValueChanged<EventLocation?> onChanged;

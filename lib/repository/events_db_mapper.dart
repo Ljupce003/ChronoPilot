@@ -9,6 +9,10 @@ import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import 'package:chrono_pilot/utils/enum_utils.dart';
 
+/// Converts a raw SQLite row into an `EventModel`.
+///
+/// Enum fields are parsed defensively so older rows or unexpected casing do not
+/// crash the app; unknown values fall back to sensible defaults.
 EventModel fromDb(Map<String, dynamic> row) {
   return EventModel(
     id: row['id'],

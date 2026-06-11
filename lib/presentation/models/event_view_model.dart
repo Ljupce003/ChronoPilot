@@ -5,6 +5,10 @@ import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/utils/event_classification.dart';
 
+/// Presentation-ready event model used by the calendar and detail screens.
+///
+/// This model is produced by the timeline service after recurring expansion and
+/// override resolution, so the UI can render a concrete event occurrence.
 class EventViewModel {
   final String id;
   final String userId;
@@ -34,6 +38,7 @@ class EventViewModel {
 
   final String? recurringEventId;
 
+  /// Creates a view model for a visible event occurrence.
   EventViewModel({
     required this.id,
     required this.userId,
@@ -53,6 +58,7 @@ class EventViewModel {
     this.recurringEventId,
   });
 
+  /// Human-readable label combining the schedule and content type.
   String get scheduleAndContentText =>
       scheduleAndContentLabel(
         scheduleType: scheduleType,

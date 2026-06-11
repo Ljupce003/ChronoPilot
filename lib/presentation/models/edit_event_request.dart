@@ -7,6 +7,7 @@ import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
 
+/// Input payload used when updating an existing event.
 class EditEventRequest {
   final String userId;
   final String title;
@@ -30,6 +31,7 @@ class EditEventRequest {
   final DateTime? originalOccurrenceDate;
   final bool updateWholeSeries;
 
+  /// Creates an update request for an existing event.
   EditEventRequest({
     required this.title,
     this.description,
@@ -48,6 +50,7 @@ class EditEventRequest {
     this.updateWholeSeries = false,
   });
 
+  /// Converts the edit request into a create request for service reuse.
   CreateEventRequest toCreateReq(){
     return CreateEventRequest(
         userId: userId,

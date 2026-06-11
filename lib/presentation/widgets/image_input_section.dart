@@ -3,6 +3,12 @@ import 'dart:io';
 import 'package:chrono_pilot/service/event_media_service.dart';
 import 'package:flutter/material.dart';
 
+/// Image input section
+///
+/// Reusable UI used in event create/edit flows to attach an image to an event.
+/// It shows a preview (or placeholder) and exposes actions to take a photo or
+/// pick from the gallery via [EventMediaService]. The selected image path is
+/// returned through [onChanged].
 class ImageInputSection extends StatelessWidget {
   final String? imagePath;
   final ValueChanged<String?> onChanged;

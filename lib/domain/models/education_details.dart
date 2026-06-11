@@ -1,9 +1,11 @@
+/// Additional metadata for education/class events.
 class EducationDetails {
   final String courseName;
   final String professor;
   final String room;
   final String studyProgramCode;
 
+  /// Creates the education details payload.
   EducationDetails({
     required this.courseName,
     required this.professor,
@@ -11,6 +13,7 @@ class EducationDetails {
     required this.studyProgramCode,
   });
 
+  /// Creates an education details payload from JSON.
   factory EducationDetails.fromJson(Map<String, dynamic> json) {
     return EducationDetails(
       courseName: json['courseName'],
@@ -20,6 +23,7 @@ class EducationDetails {
     );
   }
 
+  /// Serializes the education details to JSON.
   Map<String, dynamic> toJson() {
     return {
       'courseName': courseName,

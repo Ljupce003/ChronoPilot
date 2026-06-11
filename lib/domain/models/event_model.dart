@@ -10,6 +10,10 @@ import 'package:chrono_pilot/utils/event_classification.dart';
 import 'event_location.dart';
 import 'education_details.dart';
 
+/// Stored event record persisted in SQLite.
+///
+/// The model supports one-time and recurring events, todo/class metadata,
+/// optional locations and images, and JSON encoding helpers for raw SQL storage.
 class EventModel {
   final String id;
   final String userId;
@@ -37,6 +41,7 @@ class EventModel {
   // Recurring rule embedded
   final RecurringRule? recurringRule;
 
+  /// Creates an event model with optional schedule-specific metadata.
   EventModel({
     required this.id,
     required this.userId,
@@ -55,14 +60,17 @@ class EventModel {
     this.recurringRule,
   });
 
+  /// Returns true when the event uses the recurring schedule type.
   bool get isRecurring => scheduleType == EventScheduleType.recurring;
 
+  /// Human-readable label combining schedule and content type.
   String get scheduleAndContentText =>
       scheduleAndContentLabel(
         scheduleType: scheduleType,
         contentType: contentType,
       );
 
+  /// Creates an event model from a decoded JSON map.
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
       id: json['id'],
@@ -106,6 +114,7 @@ class EventModel {
     );
   }
 
+  /// Serializes the model into a JSON-compatible map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -126,6 +135,7 @@ class EventModel {
     };
   }
 
+  /// Serializes the model into a SQLite-friendly encoded map.
   Map<String, dynamic> toJsonEncoded() {
     return {
       'id': id,

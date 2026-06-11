@@ -5,6 +5,11 @@ import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Year view widget
+///
+/// Provides a compact overview of all 12 months for the selected year and
+/// displays simple event density markers. Tapping a month triggers
+/// [onMonthSelected].
 class YearView extends StatelessWidget {
   final DateTime selected;
 

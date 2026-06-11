@@ -1,3 +1,7 @@
+/// Recurrence definition for a repeating event.
+///
+/// Stores the selected weekdays, starting date, optional end date, and time
+/// bounds used by the timeline expansion service.
 class RecurringRule {
   final List<int> daysOfWeek; // 1=Mon ... 7=Sun
 
@@ -7,6 +11,7 @@ class RecurringRule {
   final String startTime; // "HH:mm"
   final String? endTime;
 
+  /// Creates a recurrence rule.
   RecurringRule({
     required this.daysOfWeek,
     required this.startDate,
@@ -15,6 +20,7 @@ class RecurringRule {
     this.endTime,
   });
 
+  /// Creates a recurrence rule from a decoded JSON map.
   factory RecurringRule.fromJson(Map<String, dynamic> json) {
     return RecurringRule(
       daysOfWeek: List<int>.from(json['daysOfWeek']),
@@ -26,6 +32,7 @@ class RecurringRule {
     );
   }
 
+  /// Serializes the recurrence rule to a JSON-compatible map.
   Map<String, dynamic> toJson() {
     return {
       'daysOfWeek': daysOfWeek,

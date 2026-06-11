@@ -3,9 +3,14 @@ import 'package:chrono_pilot/repository/database/events_local_db.dart';
 import 'package:chrono_pilot/repository/event_overrides_db_mapper.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// Provides CRUD access to the local `event_overrides` table.
+///
+/// Overrides are stored separately from events so recurring modifications and
+/// cancellations can be tracked independently from the base event rows.
 class EventOverridesRepository {
   final EventsLocalDB localDB = EventsLocalDB.instance;
 
+  /// Inserts a new override row.
   Future<void> addOverride(EventOverride eventOverride) async {
     final db = await localDB.database;
 
@@ -16,6 +21,7 @@ class EventOverridesRepository {
     );
   }
 
+  /// Updates an existing override row by its identifier.
   Future<int> updateOverride(EventOverride eventOverride) async {
     final db = await localDB.database;
 
@@ -27,6 +33,7 @@ class EventOverridesRepository {
     );
   }
 
+  /// Deletes a single override row by id.
   Future<int> deleteOverride(String overrideId) async {
     final db = await localDB.database;
 
@@ -37,6 +44,7 @@ class EventOverridesRepository {
     );
   }
 
+  /// Loads one override by id and maps it to the domain model.
   Future<EventOverride> getOverrideById(String overrideId) async {
     final db = await localDB.database;
 
@@ -54,6 +62,7 @@ class EventOverridesRepository {
     return eventOverrideFromDb(res.first);
   }
 
+  /// Loads every override that belongs to a specific recurring event.
   Future<List<EventOverride>> getOverridesForRecurringEvent(
     String recurringEventId,
   ) async {
@@ -69,6 +78,7 @@ class EventOverridesRepository {
     return res.map(eventOverrideFromDb).toList();
   }
 
+  /// Loads overrides for a set of recurring events within a date range.
   Future<List<EventOverride>> getOverridesForRecurringEventsInRange({
     required List<String> recurringEventIds,
     required DateTime rangeStart,
@@ -96,6 +106,7 @@ class EventOverridesRepository {
     return res.map(eventOverrideFromDb).toList();
   }
 
+  /// Loads overrides that reference a particular replacement event.
   Future<List<EventOverride>> getOverridesByReplacementEventId(
     String replacementEventId,
   ) async {

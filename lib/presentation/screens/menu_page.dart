@@ -7,6 +7,13 @@ import 'package:chrono_pilot/utils/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Main menu / landing page
+///
+/// Provides quick navigation buttons to main areas of the app (calendar, event
+/// list, create event) and contains utilities such as holiday import and theme
+/// toggle. Uses [EventProvider], [AuthProvider] and [ThemeProvider].
+///
+/// Public widget: [MenuPage]
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
 
@@ -121,7 +128,6 @@ class _HolidayImportDialog extends StatefulWidget {
 class _HolidayImportDialogState extends State<_HolidayImportDialog> {
   final _yearController = TextEditingController(text: DateTime.now().year.toString());
   Future<List<Map<String, String>>>? _countriesFuture;
-  List<Map<String, String>> _countries = [];
   Map<String, String>? _selectedCountry;
   String? _selectedCountryCode;
   String? _selectedCountryName;
@@ -148,7 +154,6 @@ class _HolidayImportDialogState extends State<_HolidayImportDialog> {
               'label': country.displayLabel,
             })
         .toList();
-    _countries = mapped;
     return mapped;
   }
 
@@ -212,7 +217,6 @@ class _HolidayImportDialogState extends State<_HolidayImportDialog> {
             return const Text('No countries available.');
           }
 
-          _countries = countries;
           _selectedCountry ??= countries.first;
           _selectedCountryCode ??= _selectedCountry?['code'];
           _selectedCountryName ??= _selectedCountry?['name'];

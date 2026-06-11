@@ -8,6 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 
+/// Week view widget
+///
+/// Renders a horizontal week grid with per-day columns and time lanes. Handles
+/// event layout by collision lanes and delegates taps to optional
+/// [onDaySelected]. Consumes [EventProvider] for event data.
 class WeekView extends StatefulWidget {
   final DateTime selected;
   final ValueChanged<DateTime>? onDaySelected;

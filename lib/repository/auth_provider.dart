@@ -2,6 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Central authentication state for Firebase email/password and Google Sign-In.
+///
+/// The provider listens to Firebase auth state changes and exposes loading and
+/// error flags that the login and profile screens can react to.
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -17,10 +21,12 @@ class AuthProvider extends ChangeNotifier {
   String? get userId => _user?.uid;
   String? get userEmail => _user?.email;
 
+  /// Creates the auth provider and starts listening to Firebase auth changes.
   AuthProvider() {
     _initializeAuth();
   }
 
+  /// Subscribes to Firebase auth state updates and keeps `_user` in sync.
   void _initializeAuth() {
     _auth.authStateChanges().listen((User? user) {
       _user = user;
@@ -28,6 +34,7 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
+  /// Creates a new Firebase email/password account.
   Future<bool> signUp(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -54,6 +61,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Signs in with Firebase email/password credentials.
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -80,6 +88,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Signs in with Google and exchanges the Google tokens for Firebase auth.
   Future<bool> signInWithGoogle() async {
     _isLoading = true;
     _errorMessage = null;
@@ -141,6 +150,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Signs the current user out from both Firebase Auth and Google Sign-In.
   Future<void> signOut() async {
     try {
       await _auth.signOut();
@@ -154,6 +164,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Clears the last auth error and notifies listeners.
   void clearError() {
     _errorMessage = null;
     notifyListeners();

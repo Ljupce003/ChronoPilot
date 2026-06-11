@@ -9,6 +9,12 @@ import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Calendar screen
+///
+/// Hosts day/week/month/year views and provides navigation between them. Loads
+/// visible events via [EventProvider] and wires up the add/edit flows.
+///
+/// Public widget: [CalendarScreen]
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 

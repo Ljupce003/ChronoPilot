@@ -3,12 +3,18 @@ import 'package:chrono_pilot/domain/models/event_override_model.dart';
 import 'package:chrono_pilot/repository/event_overrides_repository.dart';
 import 'package:uuid/uuid.dart';
 
+/// Manages override records for recurring events.
+///
+/// The service creates cancelled and modified overrides, updates existing
+/// overrides, and exposes lookup helpers used by the timeline builder.
 class EventOverrideService {
   final EventOverridesRepository repository;
   final _uuid = const Uuid();
 
+  /// Creates a service that stores overrides in the given repository.
   EventOverrideService(this.repository);
 
+  /// Creates and stores a cancelled override for one recurring occurrence.
   Future<EventOverride> createCancelledOverride({
     required String userId,
     required String recurringEventId,
@@ -28,6 +34,7 @@ class EventOverrideService {
     return eventOverride;
   }
 
+  /// Creates and stores a modified override for a recurring occurrence.
   Future<EventOverride> createModifiedOverride({
     required String userId,
     required String recurringEventId,
@@ -62,14 +69,17 @@ class EventOverrideService {
     return eventOverride;
   }
 
+  /// Deletes an override by id.
   Future<void> deleteOverride(String overrideId) async {
     await repository.deleteOverride(overrideId);
   }
 
+  /// Loads a single override by id.
   Future<EventOverride> getOverrideById(String overrideId) async {
     return repository.getOverrideById(overrideId);
   }
 
+  /// Marks an existing override as cancelled without changing its identity.
   Future<void> markOverrideAsCancelled(
     String overrideId, {
     String? note,
@@ -88,6 +98,7 @@ class EventOverrideService {
     await repository.updateOverride(cancelled);
   }
 
+  /// Loads overrides for recurring events that overlap the provided range.
   Future<List<EventOverride>> getOverridesForRecurringEventsInRange({
     required List<String> recurringEventIds,
     required DateTime rangeStart,
