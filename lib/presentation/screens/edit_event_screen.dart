@@ -7,6 +7,7 @@ import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import 'package:chrono_pilot/presentation/models/edit_event_request.dart';
 import 'package:chrono_pilot/presentation/models/event_view_model.dart';
+import 'package:chrono_pilot/repository/auth_provider.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:chrono_pilot/presentation/widgets/image_input_section.dart';
 import 'package:chrono_pilot/presentation/widgets/location_input_section.dart';
@@ -230,6 +231,16 @@ class _EditEventScreenState extends State<EditEventScreen> {
     if (!_formKey.currentState!.validate()) return false;
 
     final provider = context.read<EventProvider>();
+    final userId = context.read<AuthProvider>().userId;
+
+    if (userId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You must be signed in to edit events.')),
+        );
+      }
+      return false;
+    }
 
     // 1. Build Recurring Rule if recurring is selected
     RecurringRule? recurringRule;
@@ -261,8 +272,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     // 3. Assemble Request
     final request = EditEventRequest(
-      userId: 'local-user',
-      // Adjust depending on auth
+      userId: userId,
       title: _titleController.text.trim().isEmpty
           ? 'Untitled Event'
           : _titleController.text.trim(),

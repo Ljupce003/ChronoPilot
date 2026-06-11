@@ -2,6 +2,7 @@ import 'package:chrono_pilot/domain/enums/education_subtype.dart';
 import 'package:chrono_pilot/domain/enums/event_content_type.dart';
 import 'package:chrono_pilot/domain/enums/event_schedule_type.dart';
 import 'package:chrono_pilot/domain/models/event_model.dart';
+import 'package:chrono_pilot/repository/auth_provider.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,17 +16,18 @@ class EventListScreen extends StatefulWidget {
 
 class _EventListScreenState extends State<EventListScreen> {
   late Future<List<EventModel>> _eventsFuture;
-  bool _loadedEventsFuture = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_loadedEventsFuture) {
-      return;
-    }
-
+  void initState() {
+    super.initState();
     _eventsFuture = context.read<EventProvider>().getAllStoredEvents();
-    _loadedEventsFuture = true;
+  }
+
+
+  void _refreshEvents() {
+    setState(() {
+      _eventsFuture = context.read<EventProvider>().getAllStoredEvents();
+    });
   }
 
   @override
@@ -49,7 +51,10 @@ class _EventListScreenState extends State<EventListScreen> {
             );
           }
 
+          final userId = context.watch<AuthProvider>().userId;
+          final isAdmin = (context.watch<AuthProvider>().userEmail ?? '').toLowerCase() == 'admin@chrono.com';
           final events = (snapshot.data ?? [])
+            ..retainWhere((e) => isAdmin || (userId != null && e.userId == userId))
             ..sort((a, b) => _sortKey(b).compareTo(_sortKey(a)));
 
           if (events.isEmpty) {
@@ -124,7 +129,7 @@ class _EventListScreenState extends State<EventListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/create-event');
+          Navigator.pushNamed(context, '/create-event').then((_) => _refreshEvents());
         },
         child: const Icon(Icons.add),
       ),

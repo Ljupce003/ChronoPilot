@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "185266213508",
+    "project_id": "chrono-pilot-firebase",
+    "storage_bucket": "chrono-pilot-firebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:185266213508:android:fbb425f8947c174b4768d1",
+        "android_client_info": {
+          "package_name": "com.ljupchoangelovski.chrono_pilot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "185266213508-cp8bd6768cq6hk3378973savubfagdl2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ljupchoangelovski.chrono_pilot",
+            "certificate_hash": "d393a020d316d21d88b00d4980fb801772888511"
+          }
+        },
+        {
+          "client_id": "185266213508-l73mh7sucq9d7ba35qv293n4p8d8bt7e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7pJ3Vtfuemh99HrvH3FIAJXZ4MZADx6E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "185266213508-l73mh7sucq9d7ba35qv293n4p8d8bt7e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "185266213508-vputkhdb5akufghtcqpvmnbhvs2qc4t6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ljupchoangelovski.chronoPilot"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

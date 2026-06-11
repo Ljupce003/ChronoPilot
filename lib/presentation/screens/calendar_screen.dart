@@ -3,6 +3,7 @@ import 'package:chrono_pilot/presentation/widgets/day_view.dart';
 import 'package:chrono_pilot/presentation/widgets/week_view.dart';
 import 'package:chrono_pilot/presentation/widgets/month_view.dart';
 import 'package:chrono_pilot/presentation/widgets/year_view.dart';
+import 'package:chrono_pilot/repository/auth_provider.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:chrono_pilot/utils/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +19,21 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarViewState extends State<CalendarScreen> {
   late CalendarViewMode calendarViewMode;
   late DateTime selectedDay;
+  late bool _isAdmin;
 
   @override
   void initState() {
     super.initState();
     calendarViewMode = CalendarViewMode.day;
     selectedDay = DateTime.now();
+    final auth = context.read<AuthProvider>();
+    _isAdmin = (auth.userEmail ?? '').toLowerCase() == 'admin@chrono.com';
+
+    // Set the current user ID for event filtering
+    final userId = auth.userId;
+    if (userId != null) {
+      context.read<EventProvider>().setCurrentUserId(userId, showAllUsers: _isAdmin);
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _reloadVisibleRange();

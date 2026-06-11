@@ -22,6 +22,8 @@ class EventProvider extends ChangeNotifier {
   late final EventOverrideService overrideService;
   late final EventTimelineService timelineService;
   bool _initialized = false;
+  String? _currentUserId;
+  bool _showAllUsers = false;
 
   EventProvider({required this.repository, required this.overridesRepository}) {
     overrideService = EventOverrideService(overridesRepository);
@@ -32,6 +34,14 @@ class EventProvider extends ChangeNotifier {
     );
 
     unawaited(_initialize());
+  }
+
+  void setCurrentUserId(String? userId, {bool showAllUsers = false}) {
+    _currentUserId = userId;
+    _showAllUsers = showAllUsers;
+    if (userId != null) {
+      unawaited(_initialize());
+    }
   }
 
   List<EventViewModel> _events = [];
@@ -59,12 +69,17 @@ class EventProvider extends ChangeNotifier {
     if (existing.isNotEmpty) {
       return;
     }
+    // Don't seed if not logged in
+    if (_currentUserId == null) {
+      return;
+    }
 
     final now = DateTime.now();
+    final userId = _currentUserId!;
 
     await eventService.createEvent(
       CreateEventRequest(
-        userId: 'seed-user',
+        userId: userId,
         title: 'Seed Single Event',
         scheduleType: EventScheduleType.oneTime,
         contentType: EventContentType.ordinary,
@@ -75,7 +90,7 @@ class EventProvider extends ChangeNotifier {
 
     await eventService.createEvent(
       CreateEventRequest(
-        userId: 'seed-user',
+        userId: userId,
         title: 'Seed Education Event',
         scheduleType: EventScheduleType.oneTime,
         contentType: EventContentType.education,
@@ -92,7 +107,7 @@ class EventProvider extends ChangeNotifier {
 
     await eventService.createEvent(
       CreateEventRequest(
-        userId: 'seed-user',
+        userId: userId,
         title: 'Seed Todo Event',
         scheduleType: EventScheduleType.oneTime,
         contentType: EventContentType.todo,
@@ -103,7 +118,7 @@ class EventProvider extends ChangeNotifier {
     // Test overlapping events
     await eventService.createEvent(
       CreateEventRequest(
-        userId: 'seed-user',
+        userId: userId,
         title: 'Overlapping Event 1',
         scheduleType: EventScheduleType.oneTime,
         contentType: EventContentType.ordinary,
@@ -115,7 +130,7 @@ class EventProvider extends ChangeNotifier {
     // Test same-time event (starts at same time as Seed Single Event)
     await eventService.createEvent(
       CreateEventRequest(
-        userId: 'seed-user',
+        userId: userId,
         title: 'Same-Time Event',
         scheduleType: EventScheduleType.oneTime,
         contentType: EventContentType.ordinary,
@@ -127,7 +142,7 @@ class EventProvider extends ChangeNotifier {
     // Test partial overlap
     await eventService.createEvent(
       CreateEventRequest(
-        userId: 'seed-user',
+        userId: userId,
         title: 'Partial Overlap Event',
         scheduleType: EventScheduleType.oneTime,
         contentType: EventContentType.todo,
@@ -424,13 +439,17 @@ class EventProvider extends ChangeNotifier {
     final dayEnd = dayStart.add(const Duration(days: 1));
 
     return _events.where((e) {
-      return e.endDateTime.isAfter(dayStart) && e.startDateTime.isBefore(dayEnd);
+      return (_showAllUsers || e.userId == _currentUserId) &&
+          e.endDateTime.isAfter(dayStart) &&
+          e.startDateTime.isBefore(dayEnd);
     }).toList();
   }
 
   List<EventViewModel> getEventsForWeek(DateTime startOfWeek, DateTime endOfWeek) {
     return _events.where((e) {
-      return e.endDateTime.isAfter(startOfWeek) && e.startDateTime.isBefore(endOfWeek);
+      return (_showAllUsers || e.userId == _currentUserId) &&
+          e.endDateTime.isAfter(startOfWeek) &&
+          e.startDateTime.isBefore(endOfWeek);
     }).toList();
   }
 
@@ -439,7 +458,9 @@ class EventProvider extends ChangeNotifier {
     final monthEnd = DateTime(year, month + 1, 1);
 
     return _events.where((e) {
-      return e.endDateTime.isAfter(monthStart) && e.startDateTime.isBefore(monthEnd);
+      return (_showAllUsers || e.userId == _currentUserId) &&
+          e.endDateTime.isAfter(monthStart) &&
+          e.startDateTime.isBefore(monthEnd);
     }).toList();
   }
 
@@ -455,7 +476,8 @@ class EventProvider extends ChangeNotifier {
     final yearEnd = DateTime(year + 1, 1, 1);
 
     return _events.where((e) {
-      return e.endDateTime.isAfter(yearStart) &&
+      return (_showAllUsers || e.userId == _currentUserId) &&
+          e.endDateTime.isAfter(yearStart) &&
           e.startDateTime.isBefore(yearEnd);
     }).toList();
   }

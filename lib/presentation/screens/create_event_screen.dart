@@ -5,6 +5,7 @@ import 'package:chrono_pilot/domain/models/education_details.dart';
 import 'package:chrono_pilot/domain/models/event_location.dart';
 import 'package:chrono_pilot/domain/models/recurring_rule.dart';
 import 'package:chrono_pilot/presentation/models/create_event_req.dart';
+import 'package:chrono_pilot/repository/auth_provider.dart';
 import 'package:chrono_pilot/repository/event_provider.dart';
 import 'package:chrono_pilot/presentation/widgets/image_input_section.dart';
 import 'package:chrono_pilot/presentation/widgets/location_input_section.dart';
@@ -170,6 +171,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final provider = context.read<EventProvider>();
+    final userId = context.read<AuthProvider>().userId;
+
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be signed in to create events.')),
+      );
+      return;
+    }
 
     // 1. Build Recurring Rule if recurring is selected
     RecurringRule? recurringRule;
@@ -198,7 +208,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
     // 3. Assemble Request
     final request = CreateEventRequest(
-      userId: 'local-user', // Adjust depending on auth
+      userId: userId,
       title: _titleController.text.trim().isEmpty
           ? 'Untitled Event'
           : _titleController.text.trim(),
@@ -215,8 +225,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       imagePath: _imagePath,
     );
 
-    await provider.createEvent(request);
-    if (mounted) Navigator.pop(context);
+    try {
+      await provider.createEvent(request);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create event: $e')),
+      );
+    }
   }
 
   String _dayName(int weekday) {
